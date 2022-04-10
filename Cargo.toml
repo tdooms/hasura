@@ -1,5 +1,5 @@
 [package]
-name = "hasura_api"
+name = "hasura"
 version = "0.1.0"
 edition = "2021"
 
