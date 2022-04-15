@@ -8,5 +8,5 @@ members = ["api", "derive"]
 
 [dependencies]
 api = { path = "api" }
-derive = { derive = "api" }
+derive = { path = "derive" }
 
