@@ -16,6 +16,7 @@ struct Round {
     question: String,
 }
 
+#[test]
 fn main() {
     let round = Round {
         index: 420,
