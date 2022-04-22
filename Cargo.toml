@@ -4,5 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["api", "derive", "tests"]
+members = ["api", "derive"]
+
+[dependencies]
+api = { path = "api" }
+derive = { path = "derive" }
 
