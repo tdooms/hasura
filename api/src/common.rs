@@ -25,13 +25,27 @@ pub trait Encode {
 }
 
 impl_encode!(String, "\\\"{}\\\"");
+
+impl_encode!(u128, "\\\"{}\\\"");
 impl_encode!(u64, "\\\"{}\\\"");
 impl_encode!(u32, "\\\"{}\\\"");
+impl_encode!(u16, "\\\"{}\\\"");
+impl_encode!(u8, "\\\"{}\\\"");
+
+impl_encode!(i128, "\\\"{}\\\"");
 impl_encode!(i64, "\\\"{}\\\"");
 impl_encode!(i32, "\\\"{}\\\"");
+impl_encode!(i16, "\\\"{}\\\"");
+impl_encode!(i8, "\\\"{}\\\"");
+
+impl_encode!(f64, "\\\"{}\\\"");
+impl_encode!(f32, "\\\"{}\\\"");
+
 impl_encode!(isize, "\\\"{}\\\"");
 impl_encode!(usize, "\\\"{}\\\"");
+
 impl_encode!(bool, "{}");
+impl_encode!(chrono::DateTime<chrono::Utc>, "\\\"{}\\\"");
 
 impl<T: Encode> Encode for Option<T> {
     fn encode(&self) -> String {
@@ -39,12 +53,6 @@ impl<T: Encode> Encode for Option<T> {
             Some(v) => v.encode(),
             None => "null".to_owned(),
         }
-    }
-}
-
-impl Encode for chrono::DateTime<chrono::Utc> {
-    fn encode(&self) -> String {
-        format!("\\\"{}\\\"", self.to_rfc3339())
     }
 }
 
