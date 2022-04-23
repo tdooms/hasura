@@ -43,7 +43,7 @@ impl ToTokens for PkInfo {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self { ident, pks } = self;
 
-        let pk_fields = pks.iter().map(|(ident, ty)| quote!(#ident: #ty));
+        let pk_fields = pks.iter().map(|(ident, ty)| quote!(pub #ident: #ty));
         let pk_idents = pks.iter().map(|(ident, _)| quote!(#ident: {}));
 
         let pk_params = pks.iter().map(|(ident, _)| encode_map(ident));
