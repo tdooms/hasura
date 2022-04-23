@@ -8,7 +8,6 @@ use syn::{parse_macro_input, Attribute, DeriveInput};
 use crate::fields::Field;
 use crate::generate::{ObjectInfo, PkInfo};
 
-mod attributes;
 mod fields;
 mod generate;
 

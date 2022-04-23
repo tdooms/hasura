@@ -24,8 +24,8 @@ impl Field {
             let ident = field.ident.clone().unwrap();
             let ty = field.ty.clone();
 
-            let expand = field.attrs.len() == 1;
-            println!("{:?}", field.attrs);
+            let find_expand = |attr: &&syn::Attribute| attr.path.is_ident("object");
+            let expand = field.attrs.iter().find(find_expand).is_some();
 
             Field { ident, ty, expand }
         };
