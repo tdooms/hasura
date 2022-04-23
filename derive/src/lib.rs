@@ -5,17 +5,17 @@ use proc_macro::TokenStream;
 use quote::ToTokens;
 use syn::{parse_macro_input, Attribute, DeriveInput};
 
-use crate::fields::Fields;
+use crate::fields::Field;
 use crate::generate::{ObjectInfo, PkInfo};
 
 mod attributes;
 mod fields;
 mod generate;
 
-#[proc_macro_derive(Object, attributes(name))]
+#[proc_macro_derive(Object, attributes(name, object))]
 pub fn object_derive(tokens: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(tokens as DeriveInput);
-    let fields = Fields::from_ast_data(&ast.data).unwrap();
+    let fields = Field::from_ast_data(&ast.data).unwrap();
 
     let find_attr = |attr: &Attribute, name| attr.path.segments.first().unwrap().ident == name;
 
@@ -34,7 +34,7 @@ pub fn object_derive(tokens: TokenStream) -> TokenStream {
     let info = ObjectInfo {
         ident: ast.ident,
         name,
-        fields: fields.fields,
+        fields,
     };
 
     info.into_token_stream().into()
@@ -43,7 +43,7 @@ pub fn object_derive(tokens: TokenStream) -> TokenStream {
 #[proc_macro_derive(Pk, attributes(pk))]
 pub fn pk_derive(tokens: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(tokens as DeriveInput);
-    let fields = Fields::from_ast_data(&ast.data).unwrap();
+    let fields = Field::from_ast_data(&ast.data).unwrap();
 
     let find_attr = |attr: &Attribute, name| attr.path.segments.first().unwrap().ident == name;
 
@@ -63,7 +63,7 @@ pub fn pk_derive(tokens: TokenStream) -> TokenStream {
     let keys = nested.into_iter().map(map_pks).collect::<Vec<_>>();
 
     let mut pks = vec![];
-    for (ident, ty) in fields.fields.iter() {
+    for Field { ident, ty, .. } in fields.iter() {
         if keys.contains(&ident.to_string()) {
             pks.push((ident.clone(), ty.clone()))
         }

@@ -52,6 +52,7 @@ impl Encode for chrono::DateTime<chrono::Utc> {
 #[derive(Clone)]
 pub struct Field<'a, T: ?Sized> {
     pub name: &'a str,
+    pub inner: Option<String>,
     pub phantom: PhantomData<T>,
 }
 
@@ -59,6 +60,14 @@ impl<'a, T> Field<'a, T> {
     pub fn new(name: &'a str) -> Self {
         Field {
             name,
+            inner: None,
+            phantom: Default::default(),
+        }
+    }
+    pub fn recursive<S>(name: &'a str, inner: Vec<Field<'a, S>>) -> Self {
+        Field {
+            name,
+            inner: Some(inner.into_iter().join(" ")),
             phantom: Default::default(),
         }
     }
@@ -66,7 +75,10 @@ impl<'a, T> Field<'a, T> {
 
 impl<'a, T> Display for Field<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.name)
+        match &self.inner {
+            None => f.write_str(self.name),
+            Some(s) => write!(f, "{} {{ {} }}", self.name, s),
+        }
     }
 }
 

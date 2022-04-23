@@ -1,6 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
+use crate::fields::Field;
+
 // fn ty_inner_type<'a>(wrapper: &str, ty: &'a syn::Type) -> Option<&'a syn::Type> {
 //     if let syn::Type::Path(ref p) = ty {
 //         if p.path.segments.len() != 1 || p.path.segments[0].ident != wrapper {
@@ -70,7 +72,7 @@ impl ToTokens for PkInfo {
 pub struct ObjectInfo {
     pub ident: syn::Ident,
     pub name: String,
-    pub fields: Vec<(syn::Ident, syn::Type)>,
+    pub fields: Vec<Field>,
 }
 
 impl ToTokens for ObjectInfo {
@@ -81,13 +83,35 @@ impl ToTokens for ObjectInfo {
             fields,
         } = self;
 
-        let idents = fields.iter().map(|(ident, _)| quote!(#ident: {}));
-        let params = fields.iter().map(|(ident, _)| encode_map(ident));
-        let field_elems = fields.iter().map(|(ident, _)| quote!(Self::#ident()));
+        let idents = fields.iter().map(|Field { ident, .. }| quote!(#ident: {}));
+        let params = fields.iter().map(|Field { ident, .. }| encode_map(ident));
 
-        let field_fns = fields.iter().map(|(ident, _)| {
-            quote!(pub fn #ident<'a>() -> hasura::Field<'a, Self> { hasura::Field::new(stringify!(#ident)) })
-        });
+        let map_field_elems = |Field { ident, ty, expand }| match expand {
+            false => quote!(Self::#ident()),
+            true => quote!(Self::#ident(#ty::all())),
+        };
+
+        let field_elems = fields.iter().cloned().map(map_field_elems);
+
+        let map_field_fn = |Field { ident, ty, expand }| match expand {
+            false => {
+                quote! {
+                    pub fn #ident<'a>() -> hasura::Field<'a, Self> {
+                        hasura::Field::new(stringify!(#ident))
+                    }
+                }
+            }
+            true => {
+                quote! {
+                    pub fn #ident<'a>(inner: std::vec::Vec<hasura::Field<'a, #ty>>)
+                        -> hasura::Field<'a, Self> {
+                        hasura::Field::recursive(stringify!(#ident), inner)
+                    }
+                }
+            }
+        };
+
+        let field_fns = fields.iter().cloned().map(map_field_fn);
 
         let impls = quote! {
             impl #ident {

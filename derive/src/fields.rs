@@ -1,9 +1,12 @@
-pub struct Fields {
-    pub fields: Vec<(syn::Ident, syn::Type)>,
+#[derive(Clone, Debug)]
+pub struct Field {
+    pub ident: syn::Ident,
+    pub ty: syn::Type,
+    pub expand: bool,
 }
 
-impl Fields {
-    pub fn from_ast_data(data: &syn::Data) -> Option<Self> {
+impl Field {
+    pub fn from_ast_data(data: &syn::Data) -> Option<Vec<Self>> {
         let r#struct = match data {
             syn::Data::Struct(r#struct) => r#struct,
             _ => return None,
@@ -17,8 +20,17 @@ impl Fields {
             _ => return None,
         };
 
-        let to_field = |field: &syn::Field| (field.ident.clone().unwrap(), field.ty.clone());
+        let to_field = |field: &syn::Field| {
+            let ident = field.ident.clone().unwrap();
+            let ty = field.ty.clone();
+
+            let expand = field.attrs.len() == 1;
+            println!("{:?}", field.attrs);
+
+            Field { ident, ty, expand }
+        };
+
         let fields: Vec<_> = named.named.iter().map(to_field).collect();
-        Some(Self { fields })
+        Some(fields)
     }
 }

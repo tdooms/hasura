@@ -1,5 +1,18 @@
 use api::*;
 
+#[derive(Clone, derive::Object)]
+#[name("creators")]
+struct Creator {
+    name: String,
+    image: Option<String>,
+}
+
+impl Encode for Creator {
+    fn encode(&self) -> String {
+        format!("{{ {} {} }}", self.name.encode(), self.image.encode())
+    }
+}
+
 #[derive(Clone, derive::Object, derive::Pk)]
 #[name("quizzes")]
 #[pk("id")]
@@ -7,6 +20,9 @@ struct Quiz {
     id: i32,
     title: String,
     public: bool,
+
+    #[object(expand)]
+    creator: Creator,
 }
 
 #[derive(Clone, derive::Object, derive::Pk)]
@@ -28,11 +44,15 @@ fn main() {
         image: None,
     };
 
-    // let quiz = Quiz {
-    //     id: 69,
-    //     title: "MyGMP".to_string(),
-    //     public: false,
-    // };
+    let quiz = Quiz {
+        id: 69,
+        title: "MyGMP".to_string(),
+        public: false,
+        creator: Creator {
+            name: "Ikke".to_string(),
+            image: None,
+        },
+    };
 
     let round_pk = RoundPk {
         index: 420,
