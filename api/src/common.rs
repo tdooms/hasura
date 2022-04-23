@@ -44,6 +44,12 @@ impl<T: Encode> Encode for Option<T> {
     }
 }
 
+impl Encode for chrono::DateTime<chrono::Utc> {
+    fn encode(&self) -> String {
+        format!("\\\"{}\\\"", self.to_rfc3339())
+    }
+}
+
 #[derive(Clone)]
 pub struct Field<'a, T: ?Sized> {
     pub name: &'a str,
