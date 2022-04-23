@@ -119,11 +119,13 @@ impl ToTokens for ObjectInfo {
                 #(#field_fns)*
             }
 
-            impl hasura::Object for #ident {
-                fn serialize(&self) -> String {
-                    format!(stringify!(#(#idents),*), #(#params),*)
+            impl hasura::Encode for #ident {
+                fn encode(&self) -> String{
+                    format!(stringify!({} #(#idents),* {}), "{", #(#params),*, "}")
                 }
+            }
 
+            impl hasura::Object for #ident {
                 fn name<'a>() -> &'a str { #name }
             }
         };

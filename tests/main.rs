@@ -7,12 +7,6 @@ struct Creator {
     image: Option<String>,
 }
 
-impl Encode for Creator {
-    fn encode(&self) -> String {
-        format!("{{ {} {} }}", self.name.encode(), self.image.encode())
-    }
-}
-
 #[derive(Clone, derive::Object, derive::Pk)]
 #[name("quizzes")]
 #[pk("id")]
@@ -60,8 +54,8 @@ fn main() {
     };
 
     let insert = InsertBuilder::default()
-        .objects(vec![round.clone()])
-        .returning(Round::all())
+        .objects(vec![quiz.clone()])
+        .returning(Quiz::all())
         .affected_rows(true)
         .build()
         .unwrap();
@@ -73,7 +67,7 @@ fn main() {
         .build()
         .unwrap();
 
-    println!("{}", mutation!(insert, update_by_pk));
+    println!("{}", mutation!(update_by_pk, insert));
 
     let condition = Condition {
         op: "_eq",
@@ -92,7 +86,6 @@ fn main() {
 
     println!("{}", query!(quizzes));
 
-    // println!("{}", query.to_string());
     //
     // let insert = InsertBuilder::default()
     //     .objects(vec![quiz.clone(), quiz.clone()])

@@ -17,7 +17,6 @@ pub trait Pk {
 }
 
 pub trait Object {
-    fn serialize<'a>(&self) -> String;
     fn name<'a>() -> &'a str;
 }
 
