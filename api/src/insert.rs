@@ -1,8 +1,9 @@
 use itertools::Itertools;
 
 use crate::common::OnConflict;
-use crate::util::{construct_query, Kind};
-use crate::{Field, Object};
+use crate::util::construct_query;
+use crate::{Field, Mutation, Object};
+use std::fmt::Formatter;
 
 #[derive(derive_builder::Builder)]
 #[builder(pattern = "owned")]
@@ -16,8 +17,10 @@ pub struct Insert<'a, T: Object> {
     pub returning: Vec<Field<'a, T>>,
 }
 
-impl<'a, T: Object> ToString for Insert<'a, T> {
-    fn to_string(&self) -> String {
+impl<'a, T: Object> Mutation for Insert<'a, T> {}
+
+impl<'a, T: Object> std::fmt::Display for Insert<'a, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let objects = self
             .objects
             .iter()
@@ -28,7 +31,8 @@ impl<'a, T: Object> ToString for Insert<'a, T> {
         let params = [(Some("objects"), format!("[ {} ]", objects))];
 
         let rows = self.affected_rows;
-        construct_query(Kind::Mutation, name, &params, &self.returning, rows)
+
+        construct_query(f, name, &params, &self.returning, rows)
     }
 }
 
@@ -42,11 +46,13 @@ pub struct InsertOne<'a, T: Object> {
     pub returning: Vec<Field<'a, T>>,
 }
 
-impl<'a, T: Object> ToString for InsertOne<'a, T> {
-    fn to_string(&self) -> String {
+impl<'a, T: Object> Mutation for InsertOne<'a, T> {}
+
+impl<'a, T: Object> std::fmt::Display for InsertOne<'a, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let params = [(Some("object"), format!("{{ {} }}", self.object.serialize()))];
         let name = format!("insert_{}_one", T::name());
 
-        construct_query(Kind::Mutation, name, &params, &self.returning, false)
+        construct_query(f, name, &params, &self.returning, false)
     }
 }

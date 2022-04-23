@@ -1,7 +1,8 @@
-use crate::util::{construct_query, Kind};
-use crate::{Field, Object, Conditions};
-use itertools::Itertools;
 use crate::common::Pk;
+use crate::util::construct_query;
+use crate::{Conditions, Field, Mutation, Object};
+use itertools::Itertools;
+use std::fmt::Formatter;
 
 #[derive(derive_builder::Builder)]
 #[builder(pattern = "owned")]
@@ -12,19 +13,15 @@ pub struct Delete<'a, T: Object> {
     returning: Vec<Field<'a, T>>,
 }
 
-impl<'a, T: Object> ToString for Delete<'a, T> {
-    fn to_string(&self) -> String {
+impl<'a, T: Object> Mutation for Delete<'a, T> {}
+
+impl<'a, T: Object> std::fmt::Display for Delete<'a, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let conditions = format!("{{ {} }}", self.conditions.iter().format(", "));
         let name = format!("delete_{}", T::name());
         let params = [(Some("where"), conditions)];
 
-        construct_query(
-            Kind::Mutation,
-            name,
-            &params,
-            &self.returning,
-            self.affected_rows,
-        )
+        construct_query(f, name, &params, &self.returning, self.affected_rows)
     }
 }
 
@@ -35,11 +32,13 @@ pub struct DeleteByPk<'a, T: Object + Pk> {
     returning: Vec<Field<'a, T>>,
 }
 
-impl<'a, T: Object + Pk> ToString for DeleteByPk<'a, T> {
-    fn to_string(&self) -> String {
+impl<'a, T: Object + Pk> Mutation for DeleteByPk<'a, T> {}
+
+impl<'a, T: Object + Pk> std::fmt::Display for DeleteByPk<'a, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let name = format!("delete_{}_by_pk", T::name());
         let params = [(None, self.pk.to_string())];
 
-        construct_query(Kind::Mutation, name, &params, &self.returning, false)
+        construct_query(f, name, &params, &self.returning, false)
     }
 }

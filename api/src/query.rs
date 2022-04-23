@@ -1,8 +1,9 @@
 use itertools::Itertools;
 
 use crate::common::{OrderBy, Pk};
-use crate::util::{construct_query, Kind};
-use crate::{Conditions, Field, Object};
+use crate::util::construct_query;
+use crate::{Conditions, Field, Object, Queryable};
+use std::fmt::Formatter;
 
 #[derive(derive_builder::Builder)]
 #[builder(pattern = "owned")]
@@ -21,8 +22,10 @@ pub struct Query<'a, T: Object> {
     pub returning: Vec<Field<'a, T>>,
 }
 
-impl<'a, T: Object> ToString for Query<'a, T> {
-    fn to_string(&self) -> String {
+impl<'a, T: Object> Queryable for Query<'a, T> {}
+
+impl<'a, T: Object> std::fmt::Display for Query<'a, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut params = vec![];
 
         if let Some(field) = &self.distinct_on {
@@ -43,7 +46,7 @@ impl<'a, T: Object> ToString for Query<'a, T> {
             params.push((Some("conditions"), format!("{{{}}}", conditions)));
         }
 
-        construct_query(Kind::Query, T::name(), &params, &self.returning, false)
+        construct_query(f, T::name(), &params, &self.returning, false)
     }
 }
 
@@ -59,9 +62,11 @@ pub struct QueryByPk<'a, T: Object + Pk> {
     returning: Vec<Field<'a, T>>,
 }
 
-impl<'a, T: Object + Pk> ToString for QueryByPk<'a, T> {
-    fn to_string(&self) -> String {
+impl<'a, T: Object + Pk> Queryable for QueryByPk<'a, T> {}
+
+impl<T: Object + Pk> std::fmt::Display for QueryByPk<'_, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let params = [(None, self.pk.to_string())];
-        construct_query(Kind::Query, T::name(), &params, &self.returning, false)
+        construct_query(f, T::name(), &params, &self.returning, true)
     }
 }

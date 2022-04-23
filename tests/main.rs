@@ -1,15 +1,16 @@
 use api::*;
 
-// #[derive(Clone, derive::Object)]
-// #[object(name = "quizzes", pk = "id")]
-// struct Quiz {
-//     id: i32,
-//     title: String,
-//     public: bool,
-// }
-
 #[derive(Clone, derive::Object, derive::Pk)]
 #[name("quizzes")]
+#[pk("id")]
+struct Quiz {
+    id: i32,
+    title: String,
+    public: bool,
+}
+
+#[derive(Clone, derive::Object, derive::Pk)]
+#[name("rounds")]
 #[pk("index", "quiz_id")]
 struct Round {
     index: u64,
@@ -27,6 +28,17 @@ fn main() {
         image: None,
     };
 
+    // let quiz = Quiz {
+    //     id: 69,
+    //     title: "MyGMP".to_string(),
+    //     public: false,
+    // };
+
+    let round_pk = RoundPk {
+        index: 420,
+        quiz_id: 69,
+    };
+
     let insert = InsertBuilder::default()
         .objects(vec![round.clone()])
         .returning(Round::all())
@@ -35,39 +47,31 @@ fn main() {
         .unwrap();
 
     let update_by_pk = UpdateByPkBuilder::default()
-        .pk(RoundPk {
-            index: 420,
-            quiz_id: 69,
-        })
+        .pk(round_pk)
         .set(round.clone())
         .returning(Round::all())
         .build()
         .unwrap();
 
-    println!("{}", insert.to_string());
-    println!("{}", update_by_pk.to_string());
+    println!("{}", mutation!(insert, update_by_pk));
 
-    // let quiz = Quiz {
-    //     id: 1,
-    //     title: "Rust".to_string(),
-    //     public: true,
-    // };
-    //
-    // let condition = Condition {
-    //     op: "_eq",
-    //     value: "true",
-    // };
-    // let conditions = Conditions::Field(Quiz::title(), vec![condition]);
-    //
-    // let query = QueryBuilder::default()
-    //     .distinct_on(Quiz::title())
-    //     .conditions(vec![conditions.clone()])
-    //     .offset(10u64)
-    //     .limit(10u64)
-    //     .returning(Quiz::all())
-    //     .build()
-    //     .unwrap();
-    //
+    let condition = Condition {
+        op: "_eq",
+        value: "true",
+    };
+    let conditions = Conditions::Field(Quiz::title(), vec![condition]);
+
+    let quizzes = QueryBuilder::default()
+        .distinct_on(Quiz::title())
+        .conditions(vec![conditions.clone()])
+        .offset(10u64)
+        .limit(10u64)
+        .returning(Quiz::all())
+        .build()
+        .unwrap();
+
+    println!("{}", query!(quizzes));
+
     // println!("{}", query.to_string());
     //
     // let insert = InsertBuilder::default()
