@@ -48,7 +48,7 @@ impl ToTokens for PkInfo {
         let pk_name = syn::Ident::new(&format!("{}Pk", ident), ident.span());
 
         let impls = quote! {
-            struct #pk_name {
+            pub struct #pk_name {
                 #(#pk_fields,)*
             }
 
