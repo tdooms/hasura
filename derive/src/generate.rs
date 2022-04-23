@@ -21,7 +21,7 @@ use quote::{quote, ToTokens};
 // }
 
 fn encode_map(ident: &syn::Ident) -> proc_macro2::TokenStream {
-    quote!(api::Encode::encode(&self.#ident))
+    quote!(hasura::Encode::encode(&self.#ident))
 }
 
 // TODO: incremental updates are not yet supported
@@ -58,7 +58,7 @@ impl ToTokens for PkInfo {
                 }
             }
 
-            impl api::Pk for #ident {
+            impl hasura::Pk for #ident {
                 type Pk = #pk_name;
             }
         };
@@ -86,16 +86,16 @@ impl ToTokens for ObjectInfo {
         let field_elems = fields.iter().map(|(ident, _)| quote!(Self::#ident()));
 
         let field_fns = fields.iter().map(|(ident, _)| {
-            quote!(pub fn #ident<'a>() -> api::Field<'a, Self> { api::Field::new(stringify!(#ident)) })
+            quote!(pub fn #ident<'a>() -> hasura::Field<'a, Self> { hasura::Field::new(stringify!(#ident)) })
         });
 
         let impls = quote! {
             impl #ident {
-                pub fn all<'a>() -> Vec<api::Field<'a, Self>> { vec![#(#field_elems),*] }
+                pub fn all<'a>() -> Vec<hasura::Field<'a, Self>> { vec![#(#field_elems),*] }
                 #(#field_fns)*
             }
 
-            impl api::Object for #ident {
+            impl hasura::Object for #ident {
                 fn serialize(&self) -> String {
                     format!(stringify!(#(#idents),*), #(#params),*)
                 }
