@@ -75,7 +75,7 @@ fn main() {
     };
     let conditions = Conditions::Field(Quiz::title(), vec![condition]);
 
-    let quizzes = QueryBuilder::default()
+    let quizzes: Query<Quiz> = QueryBuilder::default()
         .distinct_on(Quiz::title())
         .conditions(vec![conditions.clone()])
         .offset(10u64)

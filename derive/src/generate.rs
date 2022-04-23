@@ -96,15 +96,15 @@ impl ToTokens for ObjectInfo {
         let map_field_fn = |Field { ident, ty, expand }| match expand {
             false => {
                 quote! {
-                    pub fn #ident<'a>() -> hasura::Field<'a, Self> {
+                    pub fn #ident<'a>() -> hasura::Field<'a> {
                         hasura::Field::new(stringify!(#ident))
                     }
                 }
             }
             true => {
                 quote! {
-                    pub fn #ident<'a>(inner: std::vec::Vec<hasura::Field<'a, #ty>>)
-                        -> hasura::Field<'a, Self> {
+                    pub fn #ident<'a>(inner: std::vec::Vec<hasura::Field<'a>>)
+                        -> hasura::Field<'a> {
                         hasura::Field::recursive(stringify!(#ident), inner)
                     }
                 }
@@ -115,7 +115,7 @@ impl ToTokens for ObjectInfo {
 
         let impls = quote! {
             impl #ident {
-                pub fn all<'a>() -> Vec<hasura::Field<'a, Self>> { vec![#(#field_elems),*] }
+                pub fn all<'a>() -> Vec<hasura::Field<'a>> { vec![#(#field_elems),*] }
                 #(#field_fns)*
             }
 

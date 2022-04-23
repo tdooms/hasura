@@ -14,7 +14,7 @@ pub struct Insert<'a, T: Object> {
     pub affected_rows: bool,
     #[builder(default)]
     pub on_conflict: Option<OnConflict>,
-    pub returning: Vec<Field<'a, T>>,
+    pub returning: Vec<Field<'a>>,
 }
 
 impl<'a, T: Object + Encode> Mutation for Insert<'a, T> {}
@@ -39,7 +39,7 @@ pub struct InsertOne<'a, T: Object> {
     pub object: T,
     #[builder(default)]
     pub on_conflict: Option<OnConflict>,
-    pub returning: Vec<Field<'a, T>>,
+    pub returning: Vec<Field<'a>>,
 }
 
 impl<'a, T: Object + Encode> Mutation for InsertOne<'a, T> {}

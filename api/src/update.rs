@@ -9,10 +9,10 @@ use std::fmt::Formatter;
 #[builder(pattern = "owned")]
 pub struct Update<'a, T: Object + Encode> {
     pub set: T,
-    pub conditions: Vec<Conditions<'a, T>>,
+    pub conditions: Vec<Conditions<'a>>,
     #[builder(default)]
     pub affected_rows: bool,
-    pub returning: Vec<Field<'a, T>>,
+    pub returning: Vec<Field<'a>>,
 }
 
 impl<'a, T: Object + Encode> Mutation for Update<'a, T> {}
@@ -39,8 +39,8 @@ pub struct UpdateByPk<'a, T: Object + Encode + Pk> {
     pub pk: T::Pk,
     pub set: T,
     #[builder(default)]
-    pub conditions: Vec<Conditions<'a, T>>,
-    pub returning: Vec<Field<'a, T>>,
+    pub conditions: Vec<Conditions<'a>>,
+    pub returning: Vec<Field<'a>>,
 }
 
 impl<'a, T: Object + Encode + Pk> Mutation for UpdateByPk<'a, T> {}

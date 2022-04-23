@@ -4,22 +4,25 @@ use crate::common::{OrderBy, Pk};
 use crate::util::construct_query;
 use crate::{Conditions, Field, Object, Queryable};
 use std::fmt::Formatter;
+use std::marker::PhantomData;
 
 #[derive(derive_builder::Builder)]
 #[builder(pattern = "owned")]
 #[builder(setter(into, strip_option))]
 pub struct Query<'a, T: Object> {
     #[builder(default)]
-    pub distinct_on: Option<Field<'a, T>>,
+    pub distinct_on: Option<Field<'a>>,
     #[builder(default)]
     pub limit: Option<u64>,
     #[builder(default)]
     pub offset: Option<u64>,
     #[builder(default)]
-    pub order_by: Vec<OrderBy<'a, T>>,
+    pub order_by: Vec<OrderBy<'a>>,
     #[builder(default)]
-    pub conditions: Vec<Conditions<'a, T>>,
-    pub returning: Vec<Field<'a, T>>,
+    pub conditions: Vec<Conditions<'a>>,
+    pub returning: Vec<Field<'a>>,
+    #[builder(default)]
+    phantom: PhantomData<T>,
 }
 
 impl<'a, T: Object> Queryable for Query<'a, T> {}
@@ -59,7 +62,7 @@ impl<'a, T: Object> std::fmt::Display for Query<'a, T> {
 #[builder(pattern = "owned")]
 pub struct QueryByPk<'a, T: Object + Pk> {
     pk: T::Pk,
-    returning: Vec<Field<'a, T>>,
+    returning: Vec<Field<'a>>,
 }
 
 impl<'a, T: Object + Pk> Queryable for QueryByPk<'a, T> {}

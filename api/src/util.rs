@@ -2,11 +2,11 @@ use std::fmt::Formatter;
 
 use crate::Field;
 
-pub fn construct_query<T>(
+pub fn construct_query(
     f: &mut Formatter<'_>,
     name: impl ToString,
     params: &[(Option<&str>, String)],
-    returning: &[Field<T>],
+    returning: &[Field],
     affected_rows: bool,
 ) -> std::fmt::Result {
     let fmt_param = |(k, v): &(Option<&str>, String)| match k {

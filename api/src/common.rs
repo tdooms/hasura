@@ -57,34 +57,28 @@ impl<T: Encode> Encode for Option<T> {
 }
 
 #[derive(Clone)]
-pub struct Field<'a, T: ?Sized> {
+pub struct Field<'a> {
     pub name: &'a str,
-    pub inner: Option<String>,
-    pub phantom: PhantomData<T>,
+    pub inner: Vec<Field<'a>>,
 }
 
-impl<'a, T> Field<'a, T> {
+impl<'a> Field<'a> {
     pub fn new(name: &'a str) -> Self {
         Field {
             name,
-            inner: None,
-            phantom: Default::default(),
+            inner: vec![],
         }
     }
-    pub fn recursive<S>(name: &'a str, inner: Vec<Field<'a, S>>) -> Self {
-        Field {
-            name,
-            inner: Some(inner.into_iter().join(" ")),
-            phantom: Default::default(),
-        }
+    pub fn recursive(name: &'a str, inner: Vec<Field<'a>>) -> Self {
+        Field { name, inner }
     }
 }
 
-impl<'a, T> Display for Field<'a, T> {
+impl<'a> Display for Field<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match &self.inner {
-            None => f.write_str(self.name),
-            Some(s) => write!(f, "{} {{ {} }}", self.name, s),
+        match &self.inner.is_empty() {
+            true => f.write_str(self.name),
+            false => write!(f, "{} {{ {} }}", self.name, self.inner.iter().join(", ")),
         }
     }
 }
@@ -102,14 +96,14 @@ impl<'a> Display for Condition<'a> {
 }
 
 #[derive(Clone)]
-pub enum Conditions<'a, T> {
-    And(Vec<Conditions<'a, T>>),
-    Or(Vec<Conditions<'a, T>>),
-    Not(Vec<Conditions<'a, T>>),
-    Field(Field<'a, T>, Vec<Condition<'a>>),
+pub enum Conditions<'a> {
+    And(Vec<Conditions<'a>>),
+    Or(Vec<Conditions<'a>>),
+    Not(Vec<Conditions<'a>>),
+    Field(Field<'a>, Vec<Condition<'a>>),
 }
 
-impl<'a, T> Conditions<'a, T> {
+impl<'a> Conditions<'a> {
     pub fn and(self, other: Self) -> Self {
         Self::And(vec![self, other])
     }
@@ -123,7 +117,7 @@ impl<'a, T> Conditions<'a, T> {
     }
 }
 
-impl<'a, T> Display for Conditions<'a, T> {
+impl<'a> Display for Conditions<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::And(v) => write!(f, "_and{{ {} }}", v.iter().format(", ")),
@@ -135,19 +129,19 @@ impl<'a, T> Display for Conditions<'a, T> {
 }
 
 #[derive(derive_more::Display, Clone)]
-pub enum OrderBy<'a, T> {
+pub enum OrderBy<'a> {
     #[display(fmt = "{}: asc", _0)]
-    Asc(Field<'a, T>),
+    Asc(Field<'a>),
     #[display(fmt = "{}: asc_nulls_first", _0)]
-    AscNullsFirst(Field<'a, T>),
+    AscNullsFirst(Field<'a>),
     #[display(fmt = "{}: asc_nulls_last", _0)]
-    AscNullsLast(Field<'a, T>),
+    AscNullsLast(Field<'a>),
     #[display(fmt = "{}: desc", _0)]
-    Desc(Field<'a, T>),
+    Desc(Field<'a>),
     #[display(fmt = "{}: desc_nulls_first", _0)]
-    DescNullsFirst(Field<'a, T>),
+    DescNullsFirst(Field<'a>),
     #[display(fmt = "{}: desc_nulls_last", _0)]
-    DescNullsLast(Field<'a, T>),
+    DescNullsLast(Field<'a>),
 }
 
 pub struct OnConflict {
