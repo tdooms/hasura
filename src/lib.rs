@@ -1,2 +1,2 @@
 pub use api::*;
-pub use derive::Object;
+pub use derive::{Object, Pk};

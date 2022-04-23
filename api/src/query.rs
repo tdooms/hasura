@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::common::OrderBy;
+use crate::common::{OrderBy, Pk};
 use crate::util::{construct_query, Kind};
 use crate::{Conditions, Field, Object};
 
@@ -54,12 +54,12 @@ impl<'a, T: Object> ToString for Query<'a, T> {
 
 #[derive(derive_builder::Builder)]
 #[builder(pattern = "owned")]
-pub struct QueryByPk<'a, T: Object> {
+pub struct QueryByPk<'a, T: Object + Pk> {
     pk: T::Pk,
     returning: Vec<Field<'a, T>>,
 }
 
-impl<'a, T: Object> ToString for QueryByPk<'a, T> {
+impl<'a, T: Object + Pk> ToString for QueryByPk<'a, T> {
     fn to_string(&self) -> String {
         let params = [(None, self.pk.to_string())];
         construct_query(Kind::Query, T::name(), &params, &self.returning, false)

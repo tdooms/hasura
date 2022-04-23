@@ -1,48 +1,77 @@
-mod attr;
-mod info;
-
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
 
-use crate::attr::AttrInfo;
-use crate::info::StructInfo;
 use quote::ToTokens;
-use syn::{parse_macro_input, DeriveInput, Field};
+use syn::{parse_macro_input, Attribute, DeriveInput};
 
-#[proc_macro_derive(Object, attributes(object))]
+use crate::fields::Fields;
+use crate::generate::{ObjectInfo, PkInfo};
+
+mod attributes;
+mod fields;
+mod generate;
+
+#[proc_macro_derive(Object, attributes(name))]
 pub fn object_derive(tokens: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(tokens as DeriveInput);
+    let fields = Fields::from_ast_data(&ast.data).unwrap();
 
-    let raw = if let syn::Data::Struct(syn::DataStruct {
-        fields: syn::Fields::Named(syn::FieldsNamed { ref named, .. }),
-        ..
-    }) = ast.data
-    {
-        named
-    } else {
-        unimplemented!();
+    let find_attr = |attr: &Attribute, name| attr.path.segments.first().unwrap().ident == name;
+
+    let attr = ast.attrs.into_iter().find(|a| find_attr(a, "name"));
+    let meta = attr.unwrap().parse_meta().unwrap();
+
+    let nested = match meta {
+        syn::Meta::List(syn::MetaList { nested, .. }) => nested,
+        _ => panic!("attribute must be a list"),
+    };
+    let name = match nested.first() {
+        Some(syn::NestedMeta::Lit(syn::Lit::Str(ref s))) => s.value(),
+        _ => panic!("attribute must be a string"),
     };
 
-    let ident = ast.ident;
+    let info = ObjectInfo {
+        ident: ast.ident,
+        name,
+        fields: fields.fields,
+    };
 
-    let to_field = |field: &Field| (field.ident.clone().unwrap(), field.ty.clone());
-    let fields: Vec<_> = raw.iter().map(to_field).collect();
+    info.into_token_stream().into()
+}
 
-    let attrs = AttrInfo::from_syn_attrs(&ast.attrs).unwrap();
+#[proc_macro_derive(Pk, attributes(pk))]
+pub fn pk_derive(tokens: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(tokens as DeriveInput);
+    let fields = Fields::from_ast_data(&ast.data).unwrap();
+
+    let find_attr = |attr: &Attribute, name| attr.path.segments.first().unwrap().ident == name;
+
+    let attr = ast.attrs.into_iter().find(|a| find_attr(a, "pk"));
+    let meta = attr.unwrap().parse_meta().unwrap();
+
+    let nested = match meta {
+        syn::Meta::List(syn::MetaList { nested, .. }) => nested,
+        _ => panic!("attribute must be a list"),
+    };
+
+    let map_pks = |n| match n {
+        syn::NestedMeta::Lit(syn::Lit::Str(ref s)) => s.value(),
+        _ => panic!("attribute must be a string"),
+    };
+
+    let keys = nested.into_iter().map(map_pks).collect::<Vec<_>>();
 
     let mut pks = vec![];
-    for (ident, ty) in fields.iter() {
-        if let Some(_) = attrs.pks.iter().find(|&x| x == &ident.to_string()) {
+    for (ident, ty) in fields.fields.iter() {
+        if keys.contains(&ident.to_string()) {
             pks.push((ident.clone(), ty.clone()))
         }
     }
 
-    let info = StructInfo {
-        ident,
-        name: attrs.name,
+    let info = PkInfo {
+        ident: ast.ident,
         pks,
-        fields,
     };
 
     info.into_token_stream().into()

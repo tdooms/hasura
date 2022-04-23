@@ -1,6 +1,7 @@
-use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
+
+use itertools::Itertools;
 
 macro_rules! impl_encode {
     ($e:ty, $s:literal) => {
@@ -12,8 +13,11 @@ macro_rules! impl_encode {
     };
 }
 
-pub trait Object {
+pub trait Pk {
     type Pk: Display;
+}
+
+pub trait Object {
     fn serialize<'a>(&self) -> String;
     fn name<'a>() -> &'a str;
 }
@@ -30,6 +34,15 @@ impl_encode!(i32, "\\\"{}\\\"");
 impl_encode!(isize, "\\\"{}\\\"");
 impl_encode!(usize, "\\\"{}\\\"");
 impl_encode!(bool, "{}");
+
+impl<T: Encode> Encode for Option<T> {
+    fn encode(&self) -> String {
+        match self {
+            Some(v) => v.encode(),
+            None => "null".to_owned(),
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct Field<'a, T: ?Sized> {

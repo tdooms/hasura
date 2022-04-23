@@ -1,4 +1,4 @@
-pub use crate::common::{Condition, Conditions, Encode, Field, Object};
+pub use crate::common::{Condition, Conditions, Encode, Field, Object, Pk};
 pub use crate::delete::{DeleteBuilder, DeleteByPk, DeleteByPkBuilder};
 pub use crate::insert::{Insert, InsertBuilder, InsertOne, InsertOneBuilder};
 pub use crate::query::{Query, QueryBuilder, QueryByPk, QueryByPkBuilder};

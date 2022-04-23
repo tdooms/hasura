@@ -8,12 +8,14 @@ use api::*;
 //     public: bool,
 // }
 
-#[derive(Clone, derive::Object)]
-#[object(name = "quizzes", pk = "index", pk = "quiz_id")]
+#[derive(Clone, derive::Object, derive::Pk)]
+#[name("quizzes")]
+#[pk("index", "quiz_id")]
 struct Round {
     index: u64,
     quiz_id: u64,
     question: String,
+    image: Option<String>,
 }
 
 #[test]
@@ -22,6 +24,7 @@ fn main() {
         index: 420,
         quiz_id: 69,
         question: "What is your name?".to_string(),
+        image: None,
     };
 
     let insert = InsertBuilder::default()
