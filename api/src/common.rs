@@ -1,7 +1,6 @@
+use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
-
-use itertools::Itertools;
 
 macro_rules! impl_encode {
     ($e:ty, $s:literal) => {

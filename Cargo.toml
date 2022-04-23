@@ -7,6 +7,6 @@ edition = "2021"
 members = ["api", "derive"]
 
 [dependencies]
-api = { path = "api", features = ["chrono"] }
+api = { path = "api" }
 derive = { path = "derive" }
 
