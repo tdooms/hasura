@@ -34,6 +34,30 @@ fn encode_map(ident: &syn::Ident) -> proc_macro2::TokenStream {
 //     }
 // }
 
+pub struct EncodeInfo {
+    pub ident: syn::Ident,
+    pub fields: Vec<Field>,
+}
+
+impl ToTokens for EncodeInfo {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let Self { ident, fields } = self;
+
+        let idents = fields.iter().map(|Field { ident, .. }| quote!(#ident: {}));
+        let params = fields.iter().map(|Field { ident, .. }| encode_map(ident));
+
+        let impls = quote! {
+            impl hasura::Encode for #ident {
+                fn encode(&self) -> String {
+                    format!(stringify!({} #(#idents),* {}), "{", #(#params),*, "}")
+                }
+            }
+        };
+
+        tokens.extend(impls);
+    }
+}
+
 pub struct PkInfo {
     pub ident: syn::Ident,
     pub pks: Vec<(syn::Ident, syn::Type)>,
@@ -72,6 +96,7 @@ impl ToTokens for PkInfo {
 pub struct ObjectInfo {
     pub ident: syn::Ident,
     pub name: String,
+    pub draft: syn::Ident,
     pub fields: Vec<Field>,
 }
 
@@ -81,10 +106,8 @@ impl ToTokens for ObjectInfo {
             name,
             ident,
             fields,
+            draft,
         } = self;
-
-        let idents = fields.iter().map(|Field { ident, .. }| quote!(#ident: {}));
-        let params = fields.iter().map(|Field { ident, .. }| encode_map(ident));
 
         let map_field_elems = |Field { ident, ty, expand }| match expand {
             false => quote!(Self::#ident()),
@@ -93,18 +116,18 @@ impl ToTokens for ObjectInfo {
 
         let field_elems = fields.iter().cloned().map(map_field_elems);
 
-        let map_field_fn = |Field { ident, ty, expand }| match expand {
+        let map_field_fn = |Field { ident, expand, .. }| match expand {
             false => {
                 quote! {
-                    pub fn #ident<'a>() -> hasura::Field<'a> {
+                    pub fn #ident<'a>() -> hasura::Field<'a, Self> {
                         hasura::Field::new(stringify!(#ident))
                     }
                 }
             }
             true => {
                 quote! {
-                    pub fn #ident<'a>(inner: std::vec::Vec<hasura::Field<'a>>)
-                        -> hasura::Field<'a> {
+                    pub fn #ident<'a, S>(inner: std::vec::Vec<hasura::Field<'a, S>>)
+                        -> hasura::Field<'a, Self> {
                         hasura::Field::recursive(stringify!(#ident), inner)
                     }
                 }
@@ -115,17 +138,12 @@ impl ToTokens for ObjectInfo {
 
         let impls = quote! {
             impl #ident {
-                pub fn all<'a>() -> Vec<hasura::Field<'a>> { vec![#(#field_elems),*] }
+                pub fn all<'a>() -> Vec<hasura::Field<'a, Self>> { vec![#(#field_elems),*] }
                 #(#field_fns)*
             }
 
-            impl hasura::Encode for #ident {
-                fn encode(&self) -> String{
-                    format!(stringify!({} #(#idents),* {}), "{", #(#params),*, "}")
-                }
-            }
-
             impl hasura::Object for #ident {
+                type Draft = #draft;
                 fn name<'a>() -> &'a str { #name }
             }
         };

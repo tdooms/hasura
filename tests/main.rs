@@ -1,17 +1,17 @@
 use api::*;
 
-#[derive(Clone, derive::Object)]
-#[name("creators")]
+#[derive(Clone, hasura::Object, hasura::Encode)]
+#[object(name = "creators")]
 struct Creator {
     name: String,
     image: Option<String>,
 }
 
-#[derive(Clone, derive::Object, derive::Pk)]
-#[name("quizzes")]
-#[pk("id")]
+#[derive(Clone, hasura::Object, hasura::Pk, derive::Encode)]
+#[object(name = "quizzes", pk = "id", draft = "DraftRound")]
 struct Quiz {
     id: i32,
+
     title: String,
     public: bool,
 
@@ -19,12 +19,19 @@ struct Quiz {
     creator: Creator,
 }
 
-#[derive(Clone, derive::Object, derive::Pk)]
-#[name("rounds")]
-#[pk("index", "quiz_id")]
+#[derive(hasura::Encode, Clone)]
+struct DraftRound {
+    title: String,
+    public: bool,
+    creator: Creator,
+}
+
+#[derive(Clone, hasura::Object, hasura::Pk, hasura::Encode)]
+#[object(name = "rounds", pk = "index", pk = "quiz_id")]
 struct Round {
     index: u64,
     quiz_id: u64,
+
     question: String,
     image: Option<String>,
 }
@@ -38,8 +45,7 @@ fn main() {
         image: None,
     };
 
-    let quiz = Quiz {
-        id: 69,
+    let draft = DraftRound {
         title: "MyGMP".to_string(),
         public: false,
         creator: Creator {
@@ -54,7 +60,7 @@ fn main() {
     };
 
     let insert = InsertBuilder::default()
-        .objects(vec![quiz.clone()])
+        .objects(vec![draft.clone()])
         .returning(Quiz::all())
         .affected_rows(true)
         .build()

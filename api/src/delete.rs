@@ -8,10 +8,10 @@ use std::marker::PhantomData;
 #[derive(derive_builder::Builder)]
 #[builder(pattern = "owned")]
 pub struct Delete<'a, T: Object> {
-    conditions: Vec<Conditions<'a>>,
+    conditions: Vec<Conditions<'a, T>>,
     #[builder(default)]
     affected_rows: bool,
-    returning: Vec<Field<'a>>,
+    returning: Vec<Field<'a, T>>,
     #[builder(default)]
     phantom: PhantomData<T>,
 }
@@ -32,7 +32,7 @@ impl<'a, T: Object> std::fmt::Display for Delete<'a, T> {
 #[builder(pattern = "owned")]
 pub struct DeleteByPk<'a, T: Object + Pk> {
     pk: T::Pk,
-    returning: Vec<Field<'a>>,
+    returning: Vec<Field<'a, T>>,
     #[builder(default)]
     phantom: PhantomData<T>,
 }

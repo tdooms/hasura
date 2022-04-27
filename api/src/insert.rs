@@ -9,12 +9,12 @@ use std::fmt::Formatter;
 #[builder(pattern = "owned")]
 #[builder(setter(into, strip_option))]
 pub struct Insert<'a, T: Object> {
-    pub objects: Vec<T>,
+    pub objects: Vec<T::Draft>,
     #[builder(default)]
     pub affected_rows: bool,
     #[builder(default)]
     pub on_conflict: Option<OnConflict>,
-    pub returning: Vec<Field<'a>>,
+    pub returning: Vec<Field<'a, T>>,
 }
 
 impl<'a, T: Object + Encode> Mutation for Insert<'a, T> {}
@@ -36,10 +36,10 @@ impl<'a, T: Object + Encode> std::fmt::Display for Insert<'a, T> {
 #[builder(pattern = "owned")]
 #[builder(setter(into, strip_option))]
 pub struct InsertOne<'a, T: Object> {
-    pub object: T,
+    pub object: T::Draft,
     #[builder(default)]
     pub on_conflict: Option<OnConflict>,
-    pub returning: Vec<Field<'a>>,
+    pub returning: Vec<Field<'a, T>>,
 }
 
 impl<'a, T: Object + Encode> Mutation for InsertOne<'a, T> {}

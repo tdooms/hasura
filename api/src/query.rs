@@ -11,16 +11,16 @@ use std::marker::PhantomData;
 #[builder(setter(into, strip_option))]
 pub struct Query<'a, T: Object> {
     #[builder(default)]
-    pub distinct_on: Option<Field<'a>>,
+    pub distinct_on: Option<Field<'a, T>>,
     #[builder(default)]
     pub limit: Option<u64>,
     #[builder(default)]
     pub offset: Option<u64>,
     #[builder(default)]
-    pub order_by: Vec<OrderBy<'a>>,
+    pub order_by: Vec<OrderBy<'a, T>>,
     #[builder(default)]
-    pub conditions: Vec<Conditions<'a>>,
-    pub returning: Vec<Field<'a>>,
+    pub conditions: Vec<Conditions<'a, T>>,
+    pub returning: Vec<Field<'a, T>>,
     #[builder(default)]
     phantom: PhantomData<T>,
 }
@@ -62,7 +62,7 @@ impl<'a, T: Object> std::fmt::Display for Query<'a, T> {
 #[builder(pattern = "owned")]
 pub struct QueryByPk<'a, T: Object + Pk> {
     pk: T::Pk,
-    returning: Vec<Field<'a>>,
+    returning: Vec<Field<'a, T>>,
 }
 
 impl<'a, T: Object + Pk> Queryable for QueryByPk<'a, T> {}
