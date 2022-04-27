@@ -37,7 +37,7 @@ impl<'a, T: Object + Encode> std::fmt::Display for Update<'a, T> {
 #[builder(pattern = "owned")]
 pub struct UpdateByPk<'a, T: Object + Encode + Pk> {
     pub pk: T::Pk,
-    pub set: T,
+    pub set: T::Draft,
     #[builder(default)]
     pub conditions: Vec<Conditions<'a, T>>,
     pub returning: Vec<Field<'a, T>>,
