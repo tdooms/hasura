@@ -76,6 +76,7 @@ impl<'a, T: Object + Pk> Queryable for QueryByPk<'a, T> {
 impl<T: Object + Pk> std::fmt::Display for QueryByPk<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let params = [(None, self.pk.to_string())];
-        construct_query(f, T::name(), &params, &self.returning, true)
+        let name = format!("{}_by_pk", T::name());
+        construct_query(f, name, &params, &self.returning, true)
     }
 }
