@@ -49,7 +49,7 @@ impl<'a, T: Object> std::fmt::Display for Query<'a, T> {
         }
         if !self.conditions.is_empty() {
             let conditions = self.conditions.iter().format(", ");
-            params.push((Some("conditions"), format!("{{{}}}", conditions)));
+            params.push((Some("where"), format!("{{{}}}", conditions)));
         }
 
         construct_query(f, T::name(), &params, &self.returning, false)
