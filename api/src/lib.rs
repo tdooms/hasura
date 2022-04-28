@@ -7,8 +7,10 @@ pub use crate::update::{Update, UpdateBuilder, UpdateByPk, UpdateByPkBuilder};
 
 mod common;
 mod delete;
+mod deserialize;
 mod insert;
 mod macros;
 mod query;
+mod request;
 mod update;
 mod util;

@@ -26,7 +26,9 @@ pub struct Query<'a, T: Object> {
     phantom: PhantomData<T>,
 }
 
-impl<'a, T: Object> Queryable for Query<'a, T> {}
+impl<'a, T: Object> Queryable for Query<'a, T> {
+    type Output = Vec<T>;
+}
 
 impl<'a, T: Object> std::fmt::Display for Query<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -67,7 +69,9 @@ pub struct QueryByPk<'a, T: Object + Pk> {
     pub returning: Fields<'a, T>,
 }
 
-impl<'a, T: Object + Pk> Queryable for QueryByPk<'a, T> {}
+impl<'a, T: Object + Pk> Queryable for QueryByPk<'a, T> {
+    type Output = Option<T>;
+}
 
 impl<T: Object + Pk> std::fmt::Display for QueryByPk<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

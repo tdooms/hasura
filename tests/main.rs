@@ -89,6 +89,9 @@ fn main() {
 
     println!("{}", query!(quizzes));
 
+    let simple: Query<Quiz> = QueryBuilder::default().build().unwrap();
+    println!("{}", query!(simple));
+
     //
     // let insert = InsertBuilder::default()
     //     .objects(vec![quiz.clone(), quiz.clone()])

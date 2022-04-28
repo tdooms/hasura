@@ -1,5 +1,10 @@
-pub trait Queryable {}
-pub trait Mutation {}
+pub trait Queryable {
+    type Output;
+}
+
+pub trait Mutation {
+    type Output;
+}
 
 #[derive(derive_more::Display)]
 #[display(fmt = "query {{ {} }}", _0)]

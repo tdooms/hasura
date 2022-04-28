@@ -18,7 +18,9 @@ pub struct Insert<'a, T: Object> {
     pub returning: Fields<'a, T>,
 }
 
-impl<'a, T: Object + Encode> Mutation for Insert<'a, T> {}
+impl<'a, T: Object + Encode> Mutation for Insert<'a, T> {
+    type Output = Vec<T>;
+}
 
 impl<'a, T: Object + Encode> std::fmt::Display for Insert<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -44,7 +46,9 @@ pub struct InsertOne<'a, T: Object> {
     pub returning: Fields<'a, T>,
 }
 
-impl<'a, T: Object + Encode> Mutation for InsertOne<'a, T> {}
+impl<'a, T: Object + Encode> Mutation for InsertOne<'a, T> {
+    type Output = Option<T>;
+}
 
 impl<'a, T: Object + Encode> std::fmt::Display for InsertOne<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

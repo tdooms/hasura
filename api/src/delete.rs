@@ -17,7 +17,9 @@ pub struct Delete<'a, T: Object> {
     phantom: PhantomData<T>,
 }
 
-impl<'a, T: Object> Mutation for Delete<'a, T> {}
+impl<'a, T: Object> Mutation for Delete<'a, T> {
+    type Output = Vec<T>;
+}
 
 impl<'a, T: Object> std::fmt::Display for Delete<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -39,7 +41,9 @@ pub struct DeleteByPk<'a, T: Object + Pk> {
     phantom: PhantomData<T>,
 }
 
-impl<'a, T: Object + Pk> Mutation for DeleteByPk<'a, T> {}
+impl<'a, T: Object + Pk> Mutation for DeleteByPk<'a, T> {
+    type Output = Option<T>;
+}
 
 impl<'a, T: Object + Pk> std::fmt::Display for DeleteByPk<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

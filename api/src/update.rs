@@ -16,7 +16,9 @@ pub struct Update<'a, T: Object + Encode> {
     pub returning: Fields<'a, T>,
 }
 
-impl<'a, T: Object + Encode> Mutation for Update<'a, T> {}
+impl<'a, T: Object + Encode> Mutation for Update<'a, T> {
+    type Output = Vec<T>;
+}
 
 impl<'a, T: Object + Encode> std::fmt::Display for Update<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -45,7 +47,9 @@ pub struct UpdateByPk<'a, T: Object + Encode + Pk> {
     pub returning: Fields<'a, T>,
 }
 
-impl<'a, T: Object + Encode + Pk> Mutation for UpdateByPk<'a, T> {}
+impl<'a, T: Object + Encode + Pk> Mutation for UpdateByPk<'a, T> {
+    type Output = Option<T>;
+}
 
 impl<'a, T: Object + Encode + Pk> std::fmt::Display for UpdateByPk<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
