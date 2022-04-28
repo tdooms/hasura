@@ -126,7 +126,7 @@ impl ToTokens for ObjectInfo {
             }
             true => {
                 quote! {
-                    pub fn #ident<'a, S>(inner: std::vec::Vec<hasura::Field<'a, S>>)
+                    pub fn #ident<'a, S: hasura::Object>(inner: hasura::Fields<'a, S>)
                         -> hasura::Field<'a, Self> {
                         hasura::Field::recursive(stringify!(#ident), inner)
                     }
@@ -138,13 +138,13 @@ impl ToTokens for ObjectInfo {
 
         let impls = quote! {
             impl #ident {
-                pub fn all<'a>() -> Vec<hasura::Field<'a, Self>> { vec![#(#field_elems),*] }
                 #(#field_fns)*
             }
 
             impl hasura::Object for #ident {
                 type Draft = #draft;
                 fn name<'a>() -> &'a str { #name }
+                fn all<'a>() -> hasura::Fields<'a, Self> { hasura::Fields{inner: vec![#(#field_elems),*]} }
             }
         };
 

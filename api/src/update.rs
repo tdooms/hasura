@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 use crate::common::{Conditions, Pk};
 use crate::util::construct_query;
-use crate::{Encode, Field, Mutation, Object};
+use crate::{Encode, Field, Fields, Mutation, Object};
 use std::fmt::Formatter;
 
 #[derive(derive_builder::Builder)]
@@ -12,7 +12,8 @@ pub struct Update<'a, T: Object + Encode> {
     pub conditions: Vec<Conditions<'a, T>>,
     #[builder(default)]
     pub affected_rows: bool,
-    pub returning: Vec<Field<'a, T>>,
+    #[builder(default)]
+    pub returning: Fields<'a, T>,
 }
 
 impl<'a, T: Object + Encode> Mutation for Update<'a, T> {}
@@ -40,7 +41,8 @@ pub struct UpdateByPk<'a, T: Object + Encode + Pk> {
     pub set: T::Draft,
     #[builder(default)]
     pub conditions: Vec<Conditions<'a, T>>,
-    pub returning: Vec<Field<'a, T>>,
+    #[builder(default)]
+    pub returning: Fields<'a, T>,
 }
 
 impl<'a, T: Object + Encode + Pk> Mutation for UpdateByPk<'a, T> {}

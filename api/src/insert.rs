@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 use crate::common::OnConflict;
 use crate::util::construct_query;
-use crate::{Encode, Field, Mutation, Object};
+use crate::{Encode, Field, Fields, Mutation, Object};
 use std::fmt::Formatter;
 
 #[derive(derive_builder::Builder)]
@@ -14,7 +14,8 @@ pub struct Insert<'a, T: Object> {
     pub affected_rows: bool,
     #[builder(default)]
     pub on_conflict: Option<OnConflict>,
-    pub returning: Vec<Field<'a, T>>,
+    #[builder(default)]
+    pub returning: Fields<'a, T>,
 }
 
 impl<'a, T: Object + Encode> Mutation for Insert<'a, T> {}
@@ -39,7 +40,8 @@ pub struct InsertOne<'a, T: Object> {
     pub object: T::Draft,
     #[builder(default)]
     pub on_conflict: Option<OnConflict>,
-    pub returning: Vec<Field<'a, T>>,
+    #[builder(default)]
+    pub returning: Fields<'a, T>,
 }
 
 impl<'a, T: Object + Encode> Mutation for InsertOne<'a, T> {}

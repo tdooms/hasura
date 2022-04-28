@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 use crate::common::{OrderBy, Pk};
 use crate::util::construct_query;
-use crate::{Conditions, Field, Object, Queryable};
+use crate::{Conditions, Field, Fields, Object, Queryable};
 use std::fmt::Formatter;
 use std::marker::PhantomData;
 
@@ -20,7 +20,8 @@ pub struct Query<'a, T: Object> {
     pub order_by: Vec<OrderBy<'a, T>>,
     #[builder(default)]
     pub conditions: Vec<Conditions<'a, T>>,
-    pub returning: Vec<Field<'a, T>>,
+    #[builder(default)]
+    pub returning: Fields<'a, T>,
     #[builder(default)]
     phantom: PhantomData<T>,
 }
@@ -62,7 +63,8 @@ impl<'a, T: Object> std::fmt::Display for Query<'a, T> {
 #[builder(pattern = "owned")]
 pub struct QueryByPk<'a, T: Object + Pk> {
     pk: T::Pk,
-    returning: Vec<Field<'a, T>>,
+    #[builder(default)]
+    pub returning: Fields<'a, T>,
 }
 
 impl<'a, T: Object + Pk> Queryable for QueryByPk<'a, T> {}

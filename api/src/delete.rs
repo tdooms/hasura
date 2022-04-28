@@ -1,6 +1,6 @@
 use crate::common::Pk;
 use crate::util::construct_query;
-use crate::{Conditions, Field, Mutation, Object};
+use crate::{Conditions, Field, Fields, Mutation, Object};
 use itertools::Itertools;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
@@ -11,7 +11,8 @@ pub struct Delete<'a, T: Object> {
     conditions: Vec<Conditions<'a, T>>,
     #[builder(default)]
     affected_rows: bool,
-    returning: Vec<Field<'a, T>>,
+    #[builder(default)]
+    pub returning: Fields<'a, T>,
     #[builder(default)]
     phantom: PhantomData<T>,
 }
@@ -32,7 +33,8 @@ impl<'a, T: Object> std::fmt::Display for Delete<'a, T> {
 #[builder(pattern = "owned")]
 pub struct DeleteByPk<'a, T: Object + Pk> {
     pk: T::Pk,
-    returning: Vec<Field<'a, T>>,
+    #[builder(default)]
+    pub returning: Fields<'a, T>,
     #[builder(default)]
     phantom: PhantomData<T>,
 }

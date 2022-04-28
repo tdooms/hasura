@@ -1,12 +1,12 @@
 use std::fmt::Formatter;
 
-use crate::Field;
+use crate::{Field, Fields, Object};
 
-pub fn construct_query<T>(
+pub fn construct_query<T: Object>(
     f: &mut Formatter<'_>,
     name: impl ToString,
     params: &[(Option<&str>, String)],
-    returning: &[Field<T>],
+    returning: &Fields<T>,
     affected_rows: bool,
 ) -> std::fmt::Result {
     let fmt_param = |(k, v): &(Option<&str>, String)| match k {
@@ -15,17 +15,17 @@ pub fn construct_query<T>(
     };
 
     let params: Vec<_> = params.into_iter().map(fmt_param).collect();
-    let mut returning: Vec<_> = returning.into_iter().map(|f| f.to_string()).collect();
 
-    if affected_rows {
-        returning.push("affected_rows".to_string());
-    }
+    let returns = match affected_rows {
+        true => format!("{returning} affected_rows"),
+        false => format!("{returning}"),
+    };
 
     write!(
         f,
         "{}({}) {{ {} }}",
         name.to_string(),
         params.join(", "),
-        returning.join(" ")
+        returns
     )
 }

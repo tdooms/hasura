@@ -59,17 +59,15 @@ fn main() {
         quiz_id: 69,
     };
 
-    let insert = InsertBuilder::default()
+    let insert: Insert<Quiz> = InsertBuilder::default()
         .objects(vec![draft.clone()])
-        .returning(Quiz::all())
         .affected_rows(true)
         .build()
         .unwrap();
 
-    let update_by_pk = UpdateByPkBuilder::default()
+    let update_by_pk: UpdateByPk<Round> = UpdateByPkBuilder::default()
         .pk(round_pk)
         .set(round.clone())
-        .returning(Round::all())
         .build()
         .unwrap();
 
@@ -86,7 +84,6 @@ fn main() {
         .conditions(vec![conditions.clone()])
         .offset(10u64)
         .limit(10u64)
-        .returning(Quiz::all())
         .build()
         .unwrap();
 
