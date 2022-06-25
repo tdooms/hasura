@@ -27,7 +27,7 @@ pub fn construct_query<T: Object>(
     };
 
     let returns = match explicit_returning {
-        true => format!("retuning {{ {} }}", returns),
+        true => format!("returning {{ {} }}", returns),
         false => returns,
     };
 
