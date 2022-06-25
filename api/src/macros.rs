@@ -35,10 +35,10 @@ macro_rules! query {
 #[macro_export]
 macro_rules! mutation {
     ($a:ident) => {
-        format!("{{ \"mutation\": \"{}\" }}", Mutation1($a))
+        format!("{{ \"query\": \"{}\" }}", Mutation1($a))
     };
     ($a:ident, $b:ident) => {
-        format!("{{ \"mutation\": \"{}\" }}", Mutation2($a, $b))
+        format!("{{ \"query\": \"{}\" }}", Mutation2($a, $b))
     };
 }
 
