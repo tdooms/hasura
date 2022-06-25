@@ -57,7 +57,7 @@ impl<'a, T: Object + Encode + Pk> std::fmt::Display for UpdateByPk<'a, T> {
 
         let params = [
             (Some("_set"), self.set.encode()),
-            (Some("pk_columns"), self.pk.to_string()),
+            (Some("pk_columns"), format!("{{ {} }}", self.pk)),
         ];
 
         construct_query(f, name, &params, &self.returning, false)
