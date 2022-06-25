@@ -27,7 +27,7 @@ impl<'a, T: Object> std::fmt::Display for Delete<'a, T> {
         let name = format!("delete_{}", T::name());
         let params = [(Some("where"), conditions)];
 
-        construct_query(f, name, &params, &self.returning, self.affected_rows)
+        construct_query(f, name, &params, &self.returning, self.affected_rows, true)
     }
 }
 
@@ -50,6 +50,6 @@ impl<'a, T: Object + Pk> std::fmt::Display for DeleteByPk<'a, T> {
         let name = format!("delete_{}_by_pk", T::name());
         let params = [(None, self.pk.to_string())];
 
-        construct_query(f, name, &params, &self.returning, false)
+        construct_query(f, name, &params, &self.returning, false, false)
     }
 }

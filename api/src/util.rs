@@ -9,6 +9,7 @@ pub fn construct_query<T: Object>(
     params: &[(Option<&str>, String)],
     returning: &Fields<T>,
     affected_rows: bool,
+    explicit_returning: bool,
 ) -> std::fmt::Result {
     let fmt_param = |(k, v): &(Option<&str>, String)| match k {
         Some(k) => format!("{k}: {v}"),
@@ -23,6 +24,11 @@ pub fn construct_query<T: Object>(
     let returns = match affected_rows {
         true => format!("{returning} affected_rows"),
         false => format!("{returning}"),
+    };
+
+    let returns = match explicit_returning {
+        true => format!("retuning {{ {} }}", returns),
+        false => returns,
     };
 
     write!(f, "{}{} {{ {} }}", name.to_string(), params, returns)

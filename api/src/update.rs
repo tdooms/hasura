@@ -32,7 +32,7 @@ impl<'a, T: Object + Encode> std::fmt::Display for Update<'a, T> {
         let name = format!("update_{}", T::name());
 
         let rows = self.affected_rows;
-        construct_query(f, name, &params, &self.returning, rows)
+        construct_query(f, name, &params, &self.returning, rows, true)
     }
 }
 
@@ -60,6 +60,6 @@ impl<'a, T: Object + Encode + Pk> std::fmt::Display for UpdateByPk<'a, T> {
             (Some("pk_columns"), format!("{{ {} }}", self.pk)),
         ];
 
-        construct_query(f, name, &params, &self.returning, false)
+        construct_query(f, name, &params, &self.returning, false, false)
     }
 }

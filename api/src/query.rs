@@ -52,7 +52,7 @@ impl<'a, T: Object> std::fmt::Display for Query<'a, T> {
             params.push((Some("where"), format!("{{{}}}", conditions)));
         }
 
-        construct_query(f, T::name(), &params, &self.returning, false)
+        construct_query(f, T::name(), &params, &self.returning, false, false)
     }
 }
 
@@ -77,6 +77,6 @@ impl<T: Object + Pk> std::fmt::Display for QueryByPk<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let params = [(None, self.pk.to_string())];
         let name = format!("{}_by_pk", T::name());
-        construct_query(f, name, &params, &self.returning, false)
+        construct_query(f, name, &params, &self.returning, false, false)
     }
 }

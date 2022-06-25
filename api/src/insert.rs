@@ -31,7 +31,7 @@ impl<'a, T: Object + Encode> std::fmt::Display for Insert<'a, T> {
 
         let rows = self.affected_rows;
 
-        construct_query(f, name, &params, &self.returning, rows)
+        construct_query(f, name, &params, &self.returning, rows, true)
     }
 }
 
@@ -55,6 +55,6 @@ impl<'a, T: Object + Encode> std::fmt::Display for InsertOne<'a, T> {
         let params = [(Some("object"), self.object.encode())];
         let name = format!("insert_{}_one", T::name());
 
-        construct_query(f, name, &params, &self.returning, false)
+        construct_query(f, name, &params, &self.returning, false, false)
     }
 }
