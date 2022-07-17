@@ -6,7 +6,9 @@ pub struct Attributes {
 
 impl Attributes {
     pub fn from_syn_attrs(attrs: &[syn::Attribute]) -> Result<Self, String> {
-        let attr = attrs.first().ok_or("no attributes found".to_owned())?;
+        let attr = attrs
+            .first()
+            .ok_or_else(|| "no attributes found".to_owned())?;
 
         let meta_mapper = |nested| match nested {
             syn::NestedMeta::Meta(syn::Meta::NameValue(nv)) => Some((nv.path, nv.lit)),
@@ -33,17 +35,17 @@ impl Attributes {
             let key = &path.segments.first().ok_or("invalid name")?.ident;
 
             if let (true, syn::Lit::Str(value)) = (key == "name", &value) {
-                name = Some(value.value())
+                name = Some(value.value());
             } else if let (true, syn::Lit::Str(value)) = (key == "pk", &value) {
-                pks.push(value.value())
+                pks.push(value.value());
             } else if let (true, syn::Lit::Str(value)) = (key == "draft", &value) {
-                draft = Some(value.value())
+                draft = Some(value.value());
             } else {
                 return Err(format!("invalid attribute: {}", key));
             }
         }
 
-        let name = name.ok_or("no name found".to_owned())?;
+        let name = name.ok_or_else(|| "no name found".to_owned())?;
 
         Ok(Self { name, pks, draft })
     }

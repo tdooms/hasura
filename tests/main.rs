@@ -1,97 +1,79 @@
 use api::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, hasura::Object, hasura::Encode)]
-#[object(name = "creators")]
-struct Creator {
+#[derive(Debug, Serialize, Deserialize, Clone, hasura::Object)]
+#[object(name = "customers")]
+struct DraftCustomer {
+    member: bool,
     name: String,
-    image: Option<String>,
+    email: Option<String>,
 }
 
-#[derive(Clone, hasura::Object, hasura::Pk, derive::Encode)]
-#[object(name = "quizzes", pk = "id", draft = "DraftRound")]
-struct Quiz {
-    id: i32,
-
-    title: String,
-    public: bool,
-
-    #[object(expand)]
-    creator: Creator,
+#[derive(Debug, Serialize, Deserialize, Clone, hasura::Object, hasura::Pk)]
+#[object(name = "customers", pk = "c_id", draft = "DraftCustomer")]
+struct Customer {
+    c_id: u64,
+    member: bool,
+    name: String,
+    email: Option<String>,
 }
 
-#[derive(hasura::Encode, Clone)]
-struct DraftRound {
-    title: String,
-    public: bool,
-    creator: Creator,
-}
-
-#[derive(Clone, hasura::Object, hasura::Pk, hasura::Encode)]
-#[object(name = "rounds", pk = "index", pk = "quiz_id")]
-struct Round {
-    index: u64,
-    quiz_id: u64,
-
-    question: String,
-    image: Option<String>,
-}
-
-#[test]
-fn main() {
-    let round = Round {
-        index: 420,
-        quiz_id: 69,
-        question: "What is your name?".to_string(),
-        image: None,
+#[tokio::test]
+async fn main() {
+    let draft1 = DraftCustomer {
+        name: "John".to_string(),
+        member: false,
+        email: None,
     };
-
-    let draft = DraftRound {
-        title: "MyGMP".to_string(),
-        public: false,
-        creator: Creator {
-            name: "Ikke".to_string(),
-            image: None,
-        },
+    let draft2 = DraftCustomer {
+        name: "John The Second".to_string(),
+        member: true,
+        email: None,
     };
+    let pk = CustomerPk { c_id: 0 };
 
-    let round_pk = RoundPk {
-        index: 420,
-        quiz_id: 69,
-    };
-
-    let insert: Insert<Quiz> = InsertBuilder::default()
-        .objects(vec![draft.clone()])
+    let insert: Insert<Customer> = InsertBuilder::default()
+        .objects(vec![draft1.clone()])
         .affected_rows(true)
         .build()
         .unwrap();
 
-    let update_by_pk: UpdateByPk<Round> = UpdateByPkBuilder::default()
-        .pk(round_pk)
-        .set(round.clone())
+    let update_by_pk: UpdateByPk<Customer> = UpdateByPkBuilder::default()
+        .pk(pk)
+        .set(draft2.clone())
         .build()
         .unwrap();
-
-    println!("{}", mutation!(update_by_pk, insert));
 
     let condition = Condition {
         op: "_eq",
         value: "true",
     };
-    let conditions = Conditions::Field(Quiz::title(), vec![condition]);
+    let conditions = Conditions::Field(Customer::member(), vec![condition]);
 
-    let quizzes: Query<Quiz> = QueryBuilder::default()
-        .distinct_on(Quiz::title())
+    let customers: Query<Quiz> = QueryBuilder::default()
+        .distinct_on(Quiz::name())
         .conditions(vec![conditions.clone()])
         .offset(10u64)
         .limit(10u64)
         .build()
         .unwrap();
 
-    println!("{}", query!(quizzes));
+    let url = "https://pixeltest.hasura.app/v1/graphql";
 
-    let simple: Query<Quiz> = QueryBuilder::default().build().unwrap();
-    println!("{}", query!(simple));
+    let (updated, inserted) = mutation!(insert, update_by_pk)
+        .send(url, None)
+        .await
+        .unwrap();
 
+    let page = query!(customers).send(url, None).await.unwrap();
+
+    println!("{updated:?}\n{inserted:?}");
+    println!("{:?}", page);
+
+    // let simple: Query<Quiz> = QueryBuilder::default().build().unwrap();
+    // println!("{}", query!(simple));
+
+    ////////////////////////////////////////////////////////////////////////////////
     //
     // let insert = InsertBuilder::default()
     //     .objects(vec![quiz.clone(), quiz.clone()])

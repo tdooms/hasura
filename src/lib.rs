@@ -1,2 +1,2 @@
 pub use api::*;
-pub use derive::{Encode, Object, Pk};
+pub use derive::{Object, Pk};

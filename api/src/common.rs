@@ -2,62 +2,16 @@ use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
 
-macro_rules! impl_encode {
-    ($e:ty, $s:literal) => {
-        impl Encode for $e {
-            fn encode(&self) -> String {
-                format!($s, self)
-            }
-        }
-    };
-}
-
 pub trait Pk {
-    type Pk: Display;
+    type Pk: serde::Serialize;
 }
 
 pub trait Object {
-    type Draft: Encode;
+    type Draft: serde::Serialize;
     fn name<'a>() -> &'a str;
     fn all<'a>() -> Fields<'a, Self>
     where
         Self: Sized;
-}
-
-pub trait Encode {
-    fn encode(&self) -> String;
-}
-
-impl_encode!(String, "\\\"{}\\\"");
-
-impl_encode!(u128, "\\\"{}\\\"");
-impl_encode!(u64, "\\\"{}\\\"");
-impl_encode!(u32, "\\\"{}\\\"");
-impl_encode!(u16, "\\\"{}\\\"");
-impl_encode!(u8, "\\\"{}\\\"");
-
-impl_encode!(i128, "\\\"{}\\\"");
-impl_encode!(i64, "\\\"{}\\\"");
-impl_encode!(i32, "\\\"{}\\\"");
-impl_encode!(i16, "\\\"{}\\\"");
-impl_encode!(i8, "\\\"{}\\\"");
-
-impl_encode!(f64, "\\\"{}\\\"");
-impl_encode!(f32, "\\\"{}\\\"");
-
-impl_encode!(isize, "\\\"{}\\\"");
-impl_encode!(usize, "\\\"{}\\\"");
-
-impl_encode!(bool, "{}");
-impl_encode!(chrono::DateTime<chrono::Utc>, "\\\"{}\\\"");
-
-impl<T: Encode> Encode for Option<T> {
-    fn encode(&self) -> String {
-        match self {
-            Some(v) => v.encode(),
-            None => "null".to_owned(),
-        }
-    }
 }
 
 #[derive(Clone)]

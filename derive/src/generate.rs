@@ -3,61 +3,6 @@ use quote::{quote, ToTokens};
 
 use crate::fields::Field;
 
-// fn ty_inner_type<'a>(wrapper: &str, ty: &'a syn::Type) -> Option<&'a syn::Type> {
-//     if let syn::Type::Path(ref p) = ty {
-//         if p.path.segments.len() != 1 || p.path.segments[0].ident != wrapper {
-//             return None;
-//         }
-//
-//         if let syn::PathArguments::AngleBracketed(ref inner_ty) = p.path.segments[0].arguments {
-//             if inner_ty.args.len() != 1 {
-//                 return None;
-//             }
-//
-//             if let syn::GenericArgument::Type(ref t) = inner_ty.args.first().unwrap() {
-//                 return Some(t);
-//             }
-//         }
-//     }
-//     None
-// }
-
-fn encode_map(ident: &syn::Ident) -> proc_macro2::TokenStream {
-    quote!(hasura::Encode::encode(&self.#ident))
-}
-
-// TODO: incremental updates are not yet supported
-// fn format_map(ident: &syn::Ident, ty: &syn::Type) -> proc_macro2::TokenStream {
-//     match ty_inner_type("Option", ty) {
-//         Some(ty) => quote!(#ident: #ty),
-//         None => quote!(#ident: #ty),
-//     }
-// }
-
-pub struct EncodeInfo {
-    pub ident: syn::Ident,
-    pub fields: Vec<Field>,
-}
-
-impl ToTokens for EncodeInfo {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self { ident, fields } = self;
-
-        let idents = fields.iter().map(|Field { ident, .. }| quote!(#ident: {}));
-        let params = fields.iter().map(|Field { ident, .. }| encode_map(ident));
-
-        let impls = quote! {
-            impl hasura::Encode for #ident {
-                fn encode(&self) -> String {
-                    format!(stringify!({} #(#idents),* {}), "{", #(#params),*, "}")
-                }
-            }
-        };
-
-        tokens.extend(impls);
-    }
-}
-
 pub struct PkInfo {
     pub ident: syn::Ident,
     pub pks: Vec<(syn::Ident, syn::Type)>,
@@ -68,20 +13,12 @@ impl ToTokens for PkInfo {
         let Self { ident, pks } = self;
 
         let pk_fields = pks.iter().map(|(ident, ty)| quote!(pub #ident: #ty));
-        let pk_idents = pks.iter().map(|(ident, _)| quote!(#ident: {}));
-
-        let pk_params = pks.iter().map(|(ident, _)| encode_map(ident));
         let pk_name = syn::Ident::new(&format!("{}Pk", ident), ident.span());
 
         let impls = quote! {
+            #[derive(serde::Serialize)]
             pub struct #pk_name {
                 #(#pk_fields,)*
-            }
-
-            impl std::fmt::Display for #pk_name {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                    write!(f, stringify!(#(#pk_idents),*), #(#pk_params),*)
-                }
             }
 
             impl hasura::Pk for #ident {
@@ -116,19 +53,18 @@ impl ToTokens for ObjectInfo {
 
         let field_elems = fields.iter().cloned().map(map_field_elems);
 
-        let map_field_fn = |Field { ident, expand, .. }| match expand {
-            false => {
-                quote! {
-                    pub fn #ident<'a>() -> hasura::Field<'a, Self> {
-                        hasura::Field::new(stringify!(#ident))
-                    }
-                }
-            }
-            true => {
+        let map_field_fn = |Field { ident, expand, .. }| {
+            if expand {
                 quote! {
                     pub fn #ident<'a, S: hasura::Object>(inner: hasura::Fields<'a, S>)
                         -> hasura::Field<'a, Self> {
                         hasura::Field::recursive(stringify!(#ident), inner)
+                    }
+                }
+            } else {
+                quote! {
+                    pub fn #ident<'a>() -> hasura::Field<'a, Self> {
+                        hasura::Field::new(stringify!(#ident))
                     }
                 }
             }

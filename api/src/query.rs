@@ -3,6 +3,7 @@ use itertools::Itertools;
 use crate::common::{OrderBy, Pk};
 use crate::util::construct_query;
 use crate::{Conditions, Field, Fields, Object, Queryable};
+use serde::de::DeserializeOwned;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
 
@@ -26,8 +27,8 @@ pub struct Query<'a, T: Object> {
     phantom: PhantomData<T>,
 }
 
-impl<'a, T: Object> Queryable for Query<'a, T> {
-    type Output = Vec<T>;
+impl<'a, T: Object + DeserializeOwned> Queryable<T> for Query<'a, T> {
+    type Out = Vec<T>;
 }
 
 impl<'a, T: Object> std::fmt::Display for Query<'a, T> {
@@ -52,7 +53,7 @@ impl<'a, T: Object> std::fmt::Display for Query<'a, T> {
             params.push((Some("where"), format!("{{{}}}", conditions)));
         }
 
-        construct_query(f, T::name(), &params, &self.returning, false, false)
+        construct_query(f, &T::name(), &params, &self.returning, false, false)
     }
 }
 
@@ -69,14 +70,14 @@ pub struct QueryByPk<'a, T: Object + Pk> {
     pub returning: Fields<'a, T>,
 }
 
-impl<'a, T: Object + Pk> Queryable for QueryByPk<'a, T> {
-    type Output = Option<T>;
+impl<'a, T: Object + DeserializeOwned + Pk> Queryable<T> for QueryByPk<'a, T> {
+    type Out = Option<T>;
 }
 
 impl<T: Object + Pk> std::fmt::Display for QueryByPk<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let params = [(None, self.pk.to_string())];
+        let params = [(None, serde_json::to_string(&self.pk).unwrap())];
         let name = format!("{}_by_pk", T::name());
-        construct_query(f, name, &params, &self.returning, false, false)
+        construct_query(f, &name, &params, &self.returning, false, false)
     }
 }

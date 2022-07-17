@@ -2,7 +2,9 @@ use itertools::Itertools;
 
 use crate::common::OnConflict;
 use crate::util::construct_query;
-use crate::{Encode, Field, Fields, Mutation, Object};
+use crate::{Fields, Mutation, Object};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 use std::fmt::Formatter;
 
 #[derive(derive_builder::Builder)]
@@ -18,20 +20,24 @@ pub struct Insert<'a, T: Object> {
     pub returning: Fields<'a, T>,
 }
 
-impl<'a, T: Object + Encode> Mutation for Insert<'a, T> {
-    type Output = Vec<T>;
+impl<'a, T: Object + DeserializeOwned + Serialize> Mutation<T> for Insert<'a, T> {
+    type Out = Vec<T>;
 }
 
-impl<'a, T: Object + Encode> std::fmt::Display for Insert<'a, T> {
+impl<'a, T: Object + Serialize> std::fmt::Display for Insert<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let objects = self.objects.iter().map(|x| x.encode()).format(", ");
+        let objects = self
+            .objects
+            .iter()
+            .map(|x| serde_json::to_string(x).unwrap())
+            .format(", ");
 
         let name = format!("insert_{}", T::name());
         let params = [(Some("objects"), format!("[ {} ]", objects))];
 
         let rows = self.affected_rows;
 
-        construct_query(f, name, &params, &self.returning, rows, true)
+        construct_query(f, &name, &params, &self.returning, rows, true)
     }
 }
 
@@ -46,15 +52,15 @@ pub struct InsertOne<'a, T: Object> {
     pub returning: Fields<'a, T>,
 }
 
-impl<'a, T: Object + Encode> Mutation for InsertOne<'a, T> {
-    type Output = Option<T>;
+impl<'a, T: Object + DeserializeOwned + Serialize> Mutation<T> for InsertOne<'a, T> {
+    type Out = Option<T>;
 }
 
-impl<'a, T: Object + Encode> std::fmt::Display for InsertOne<'a, T> {
+impl<'a, T: Object + Serialize> std::fmt::Display for InsertOne<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let params = [(Some("object"), self.object.encode())];
+        let params = [(Some("object"), serde_json::to_string(&self.object).unwrap())];
         let name = format!("insert_{}_one", T::name());
 
-        construct_query(f, name, &params, &self.returning, false, false)
+        construct_query(f, &name, &params, &self.returning, false, false)
     }
 }

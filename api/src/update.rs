@@ -2,12 +2,14 @@ use itertools::Itertools;
 
 use crate::common::{Conditions, Pk};
 use crate::util::construct_query;
-use crate::{Encode, Field, Fields, Mutation, Object};
+use crate::{Fields, Mutation, Object};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 use std::fmt::Formatter;
 
 #[derive(derive_builder::Builder)]
 #[builder(pattern = "owned")]
-pub struct Update<'a, T: Object + Encode> {
+pub struct Update<'a, T: Object + Serialize> {
     pub set: T::Draft,
     pub conditions: Vec<Conditions<'a, T>>,
     #[builder(default)]
@@ -16,13 +18,13 @@ pub struct Update<'a, T: Object + Encode> {
     pub returning: Fields<'a, T>,
 }
 
-impl<'a, T: Object + Encode> Mutation for Update<'a, T> {
-    type Output = Vec<T>;
+impl<'a, T: Object + DeserializeOwned + Serialize> Mutation<T> for Update<'a, T> {
+    type Out = Vec<T>;
 }
 
-impl<'a, T: Object + Encode> std::fmt::Display for Update<'a, T> {
+impl<'a, T: Object + Serialize> std::fmt::Display for Update<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut params = vec![(Some("_set"), format!("{{ {} }}", self.set.encode()))];
+        let mut params = vec![(Some("_set"), serde_json::to_string(&self.set).unwrap())];
 
         if !self.conditions.is_empty() {
             let conditions = format!("{{ {} }}", self.conditions.iter().format(", "));
@@ -32,13 +34,13 @@ impl<'a, T: Object + Encode> std::fmt::Display for Update<'a, T> {
         let name = format!("update_{}", T::name());
 
         let rows = self.affected_rows;
-        construct_query(f, name, &params, &self.returning, rows, true)
+        construct_query(f, &name, &params, &self.returning, rows, true)
     }
 }
 
 #[derive(derive_builder::Builder)]
 #[builder(pattern = "owned")]
-pub struct UpdateByPk<'a, T: Object + Encode + Pk> {
+pub struct UpdateByPk<'a, T: Object + Serialize + Pk> {
     pub pk: T::Pk,
     pub set: T::Draft,
     #[builder(default)]
@@ -47,19 +49,19 @@ pub struct UpdateByPk<'a, T: Object + Encode + Pk> {
     pub returning: Fields<'a, T>,
 }
 
-impl<'a, T: Object + Encode + Pk> Mutation for UpdateByPk<'a, T> {
-    type Output = Option<T>;
+impl<'a, T: Object + DeserializeOwned + Serialize + Pk> Mutation<T> for UpdateByPk<'a, T> {
+    type Out = Option<T>;
 }
 
-impl<'a, T: Object + Encode + Pk> std::fmt::Display for UpdateByPk<'a, T> {
+impl<'a, T: Object + Serialize + Pk> std::fmt::Display for UpdateByPk<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let name = format!("update_{}_by_pk", T::name());
 
         let params = [
-            (Some("_set"), self.set.encode()),
-            (Some("pk_columns"), format!("{{ {} }}", self.pk)),
+            (Some("_set"), serde_json::to_string(&self.set).unwrap()),
+            (Some("pk_columns"), serde_json::to_string(&self.pk).unwrap()),
         ];
 
-        construct_query(f, name, &params, &self.returning, false, false)
+        construct_query(f, &name, &params, &self.returning, false, false)
     }
 }

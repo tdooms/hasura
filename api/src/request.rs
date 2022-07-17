@@ -1,15 +1,39 @@
-use serde::Deserialize;
-use std::collections::HashMap;
+use crate::error::Error;
+use reqwest::header::HeaderMap;
+use reqwest::Client;
+use serde_json::Value;
 use std::fmt::Debug;
 
-// #[derive(serde::Deserialize, Debug)]
-// #[serde(untagged)]
-// enum Response<T> {
-//     Data { data: T },
-//     Errors { errors: Vec<GraphqlError> },
-// }
+#[derive(serde::Deserialize, Debug)]
+pub struct GraphqlError {
+    pub extensions: Value,
+    pub message: String,
+}
 
-// pub async fn request<T: Deserialize + Debug>(
-//     headers: HashMap<String, String>,
-// ) -> Result<T, String> {
-// }
+#[derive(serde::Deserialize, Debug)]
+#[serde(untagged)]
+enum Response {
+    Data { data: Value },
+    Errors { errors: Vec<GraphqlError> },
+}
+
+pub async fn request(url: &str, body: String, token: Option<&str>) -> Result<Value, Error> {
+    let mut headers = HeaderMap::new();
+    if let Some(token) = token {
+        headers.insert("authorization", token.parse().unwrap());
+    }
+
+    let text = Client::new()
+        .post(url)
+        .headers(headers)
+        .body(body)
+        .send()
+        .await?
+        .text()
+        .await?;
+
+    match serde_json::from_str(&text)? {
+        Response::Data { data } => Ok(data),
+        Response::Errors { errors } => Err(Error::Hasura(errors)),
+    }
+}
