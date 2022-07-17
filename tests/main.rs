@@ -62,14 +62,19 @@ async fn main() {
     let admin = "TAZYDFQkwpSq9YocAg47LgyjJlbB5hs1wipNjmCtRgiDSQcg9eFLW1QCOb23nS4h";
 
     let (inserted, updated) = mutation!(insert, update_by_pk)
-        .admin(admin)
+        .admin(Some(admin.to_owned()))
         .send(url)
         .await
         .unwrap();
 
     println!("{inserted:?}\n{updated:?}");
 
-    let page = query!(customers).admin(admin).send(url).await.unwrap();
+    let page = query!(customers)
+        .admin(Some(admin.to_owned()))
+        .send(url)
+        .await
+        .unwrap();
+
     println!("{:?}", page);
 
     // let simple: Query<Quiz> = QueryBuilder::default().build().unwrap();

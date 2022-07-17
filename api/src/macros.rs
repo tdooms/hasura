@@ -41,13 +41,13 @@ impl<O> Fetch<O> {
         }
     }
 
-    pub fn token(mut self, token: &str) -> Self {
-        self.token = Some(token.to_owned());
+    pub fn token(mut self, token: Option<String>) -> Self {
+        self.token = token;
         self
     }
 
-    pub fn admin(mut self, admin: &str) -> Self {
-        self.admin = Some(admin.to_owned());
+    pub fn admin(mut self, admin: Option<String>) -> Self {
+        self.admin = admin;
         self
     }
 
