@@ -4,6 +4,7 @@ pub use crate::insert::{Insert, InsertBuilder, InsertOne, InsertOneBuilder};
 pub use crate::macros::*;
 pub use crate::query::{Query, QueryBuilder, QueryByPk, QueryByPkBuilder};
 pub use crate::update::{Update, UpdateBuilder, UpdateByPk, UpdateByPkBuilder};
+pub use error::{Error, Result};
 
 mod common;
 mod delete;

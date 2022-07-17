@@ -57,7 +57,7 @@ impl<O> Fetch<O> {
     }
 }
 
-pub fn decode<O: DeserializeOwned>(value: &Value, op: &str, ret: bool) -> Result<O> {
+fn decode<O: DeserializeOwned>(value: &Value, op: &str, ret: bool) -> Result<O> {
     let mut entry = value.get(op).ok_or(Error::Empty)?;
 
     if ret {
@@ -70,11 +70,11 @@ pub fn decode<O: DeserializeOwned>(value: &Value, op: &str, ret: bool) -> Result
     Ok(serde_json::from_value(entry.clone())?)
 }
 
-pub fn dec_query<P: Object, T: Queryable<P>>(val: &Value) -> Result<T::Out> {
+fn dec_query<P: Object, T: Queryable<P>>(val: &Value) -> Result<T::Out> {
     decode(val, P::name(), false)
 }
 
-pub fn dec_mut<P: Object, T: Mutation<P>>(val: &Value) -> Result<T::Out> {
+fn dec_mut<P: Object, T: Mutation<P>>(val: &Value) -> Result<T::Out> {
     decode(val, &T::name(), true)
 }
 
