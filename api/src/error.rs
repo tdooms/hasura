@@ -14,3 +14,5 @@ pub enum Error {
     #[error("Internal empty error")]
     Empty,
 }
+
+pub type Result<T> = std::result::Result<T, Error>;

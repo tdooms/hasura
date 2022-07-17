@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 use crate::common::OnConflict;
 use crate::util::construct_query;
-use crate::{Fields, Mutation, Object};
+use crate::{serializer, Fields, Mutation, Object};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::fmt::Formatter;
@@ -22,17 +22,21 @@ pub struct Insert<'a, T: Object> {
 
 impl<'a, T: Object + DeserializeOwned + Serialize> Mutation<T> for Insert<'a, T> {
     type Out = Vec<T>;
+
+    fn name() -> String {
+        format!("insert_{}", T::name())
+    }
 }
 
-impl<'a, T: Object + Serialize> std::fmt::Display for Insert<'a, T> {
+impl<'a, T: Object + Serialize + DeserializeOwned> std::fmt::Display for Insert<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let objects = self
             .objects
             .iter()
-            .map(|x| serde_json::to_string(x).unwrap())
+            .map(|x| serializer::to_string(x).unwrap())
             .format(", ");
 
-        let name = format!("insert_{}", T::name());
+        let name = Self::name();
         let params = [(Some("objects"), format!("[ {} ]", objects))];
 
         let rows = self.affected_rows;
@@ -54,12 +58,16 @@ pub struct InsertOne<'a, T: Object> {
 
 impl<'a, T: Object + DeserializeOwned + Serialize> Mutation<T> for InsertOne<'a, T> {
     type Out = Option<T>;
+
+    fn name() -> String {
+        format!("insert_{}_one", T::name())
+    }
 }
 
-impl<'a, T: Object + Serialize> std::fmt::Display for InsertOne<'a, T> {
+impl<'a, T: Object + Serialize + DeserializeOwned> std::fmt::Display for InsertOne<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let params = [(Some("object"), serde_json::to_string(&self.object).unwrap())];
-        let name = format!("insert_{}_one", T::name());
+        let params = [(Some("object"), serializer::to_string(&self.object).unwrap())];
+        let name = Self::name();
 
         construct_query(f, &name, &params, &self.returning, false, false)
     }

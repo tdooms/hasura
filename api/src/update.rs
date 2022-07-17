@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 use crate::common::{Conditions, Pk};
 use crate::util::construct_query;
-use crate::{Fields, Mutation, Object};
+use crate::{serializer, Fields, Mutation, Object};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::fmt::Formatter;
@@ -20,18 +20,22 @@ pub struct Update<'a, T: Object + Serialize> {
 
 impl<'a, T: Object + DeserializeOwned + Serialize> Mutation<T> for Update<'a, T> {
     type Out = Vec<T>;
+
+    fn name() -> String {
+        format!("update_{}", T::name())
+    }
 }
 
-impl<'a, T: Object + Serialize> std::fmt::Display for Update<'a, T> {
+impl<'a, T: Object + Serialize + DeserializeOwned> std::fmt::Display for Update<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut params = vec![(Some("_set"), serde_json::to_string(&self.set).unwrap())];
+        let mut params = vec![(Some("_set"), serializer::to_string(&self.set).unwrap())];
 
         if !self.conditions.is_empty() {
             let conditions = format!("{{ {} }}", self.conditions.iter().format(", "));
             params.push((Some("where"), conditions));
         }
 
-        let name = format!("update_{}", T::name());
+        let name = Self::name();
 
         let rows = self.affected_rows;
         construct_query(f, &name, &params, &self.returning, rows, true)
@@ -51,15 +55,19 @@ pub struct UpdateByPk<'a, T: Object + Serialize + Pk> {
 
 impl<'a, T: Object + DeserializeOwned + Serialize + Pk> Mutation<T> for UpdateByPk<'a, T> {
     type Out = Option<T>;
+
+    fn name() -> String {
+        format!("update_{}_by_pk", T::name())
+    }
 }
 
-impl<'a, T: Object + Serialize + Pk> std::fmt::Display for UpdateByPk<'a, T> {
+impl<'a, T: Object + Serialize + Pk + DeserializeOwned> std::fmt::Display for UpdateByPk<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let name = format!("update_{}_by_pk", T::name());
+        let name = Self::name();
 
         let params = [
-            (Some("_set"), serde_json::to_string(&self.set).unwrap()),
-            (Some("pk_columns"), serde_json::to_string(&self.pk).unwrap()),
+            (Some("_set"), serializer::to_string(&self.set).unwrap()),
+            (Some("pk_columns"), serializer::to_string(&self.pk).unwrap()),
         ];
 
         construct_query(f, &name, &params, &self.returning, false, false)

@@ -17,10 +17,18 @@ enum Response {
     Errors { errors: Vec<GraphqlError> },
 }
 
-pub async fn request(url: &str, body: String, token: Option<&str>) -> Result<Value, Error> {
+pub async fn request(
+    url: &str,
+    body: String,
+    token: Option<String>,
+    admin: Option<String>,
+) -> Result<Value, Error> {
     let mut headers = HeaderMap::new();
     if let Some(token) = token {
         headers.insert("authorization", token.parse().unwrap());
+    }
+    if let Some(admin) = admin {
+        headers.insert("x-hasura-admin-secret", admin.parse().unwrap());
     }
 
     let text = Client::new()

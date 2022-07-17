@@ -34,7 +34,7 @@ async fn main() {
 
     let insert: Insert<Customer> = InsertBuilder::default()
         .objects(vec![draft1.clone()])
-        .affected_rows(true)
+        // .affected_rows(true) // TODO: form is { retuning { c_id name} affected_rows }
         .build()
         .unwrap();
 
@@ -50,24 +50,26 @@ async fn main() {
     };
     let conditions = Conditions::Field(Customer::member(), vec![condition]);
 
-    let customers: Query<Quiz> = QueryBuilder::default()
-        .distinct_on(Quiz::name())
-        .conditions(vec![conditions.clone()])
+    let customers: Query<Customer> = QueryBuilder::default()
+        // .distinct_on(Customer::name())
+        // .conditions(vec![conditions.clone()])
         .offset(10u64)
         .limit(10u64)
         .build()
         .unwrap();
 
     let url = "https://pixeltest.hasura.app/v1/graphql";
+    let admin = "TAZYDFQkwpSq9YocAg47LgyjJlbB5hs1wipNjmCtRgiDSQcg9eFLW1QCOb23nS4h";
 
-    let (updated, inserted) = mutation!(insert, update_by_pk)
-        .send(url, None)
+    let (inserted, updated) = mutation!(insert, update_by_pk)
+        .admin(admin)
+        .send(url)
         .await
         .unwrap();
 
-    let page = query!(customers).send(url, None).await.unwrap();
+    println!("{inserted:?}\n{updated:?}");
 
-    println!("{updated:?}\n{inserted:?}");
+    let page = query!(customers).admin(admin).send(url).await.unwrap();
     println!("{:?}", page);
 
     // let simple: Query<Quiz> = QueryBuilder::default().build().unwrap();

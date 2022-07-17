@@ -1,6 +1,6 @@
 use crate::common::Pk;
 use crate::util::construct_query;
-use crate::{Conditions, Fields, Mutation, Object};
+use crate::{serializer, Conditions, Fields, Mutation, Object};
 use itertools::Itertools;
 use serde::de::DeserializeOwned;
 use std::fmt::Formatter;
@@ -20,12 +20,16 @@ pub struct Delete<'a, T: Object> {
 
 impl<'a, T: Object + DeserializeOwned> Mutation<T> for Delete<'a, T> {
     type Out = Vec<T>;
+
+    fn name() -> String {
+        format!("delete_{}", T::name())
+    }
 }
 
-impl<'a, T: Object> std::fmt::Display for Delete<'a, T> {
+impl<'a, T: Object + DeserializeOwned> std::fmt::Display for Delete<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let conditions = format!("{{ {} }}", self.conditions.iter().format(", "));
-        let name = format!("delete_{}", T::name());
+        let name = Self::name();
         let params = [(Some("where"), conditions)];
 
         construct_query(f, &name, &params, &self.returning, self.affected_rows, true)
@@ -44,12 +48,16 @@ pub struct DeleteByPk<'a, T: Object + Pk> {
 
 impl<'a, T: Object + DeserializeOwned + Pk> Mutation<T> for DeleteByPk<'a, T> {
     type Out = Option<T>;
+
+    fn name() -> String {
+        format!("delete_{}_by_pk", T::name())
+    }
 }
 
-impl<'a, T: Object + Pk> std::fmt::Display for DeleteByPk<'a, T> {
+impl<'a, T: Object + Pk + DeserializeOwned> std::fmt::Display for DeleteByPk<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let name = format!("delete_{}_by_pk", T::name());
-        let params = [(None, serde_json::to_string(&self.pk).unwrap())];
+        let name = Self::name();
+        let params = [(None, serializer::to_string(&self.pk).unwrap())];
 
         construct_query(f, &name, &params, &self.returning, false, false)
     }

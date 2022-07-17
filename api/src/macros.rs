@@ -1,102 +1,120 @@
-use crate::error::Error;
+use crate::error::{Error, Result};
 use crate::request::request;
 use crate::Object;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
-use std::fmt::Display;
+use std::fmt::{Debug, Display, Formatter};
 use std::marker::PhantomData;
 
 pub trait Queryable<P: Object>: Display {
     type Out: DeserializeOwned;
+    fn name() -> String;
 }
 
 pub trait Mutation<P: Object>: Display {
     type Out: DeserializeOwned;
+    fn name() -> String;
 }
 
-pub struct Fetch<O, T: FnOnce(Value) -> Result<O, Error>> {
-    pub extract: T,
+pub struct Fetch<O> {
+    pub body: String,
+    pub extract: Box<dyn FnOnce(Value) -> Result<O>>,
+
     pub token: Option<String>,
+    pub admin: Option<String>,
 }
 
-impl<O, T: FnOnce(Value) -> Result<O, Error>> Fetch<O, T> {
-    pub fn new(extract: T) -> Self {
+impl<O> Debug for Fetch<O> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.body)
+    }
+}
+
+impl<O> Fetch<O> {
+    pub fn new<T: Display, Fn: FnOnce(Value) -> Result<O> + 'static>(body: T, extract: Fn) -> Self {
+        let body = body.to_string().replace('"', "\\\"");
         Self {
-            extract,
+            body: format!("{{\"query\": \"{}\"}}", body),
+            extract: Box::new(extract),
             token: None,
+            admin: None,
         }
     }
+
     pub fn token(mut self, token: &str) -> Self {
         self.token = Some(token.to_owned());
         self
     }
 
-    pub async fn send(&self, url: &str) -> Result<O, Error> {
-        let val = request(url, self.to_string(), self.token.map(|x| x.as_str())).await?;
-        self.extract(val)
+    pub fn admin(mut self, admin: &str) -> Self {
+        self.admin = Some(admin.to_owned());
+        self
+    }
+
+    pub async fn send(self, url: &str) -> Result<O> {
+        let val = request(url, self.body, self.token, self.admin).await?;
+        (self.extract)(val)
     }
 }
 
-fn enc(obj: &impl ToString) -> String {
-    obj.to_string().replace('"', "\\\"")
-}
-
-pub fn decode<O: DeserializeOwned>(value: &Value, op: &str, ret: bool) -> Result<O, Error> {
+pub fn decode<O: DeserializeOwned>(value: &Value, op: &str, ret: bool) -> Result<O> {
     let mut entry = value.get(op).ok_or(Error::Empty)?;
 
     if ret {
-        entry = entry.get("returning").ok_or(Error::Empty)?;
+        entry = match entry.get("returning") {
+            Some(entry) => entry,
+            None => entry,
+        };
     }
 
     Ok(serde_json::from_value(entry.clone())?)
 }
 
-pub fn dec_query<P: Object, T: Queryable<P>>(val: &Value) -> Result<T::Out, Error> {
+pub fn dec_query<P: Object, T: Queryable<P>>(val: &Value) -> Result<T::Out> {
     decode(val, P::name(), false)
 }
 
-pub fn dec_mut<P: Object, T: Mutation<P>>(val: &Value) -> Result<T::Out, Error> {
-    decode(val, P::name(), false)
+pub fn dec_mut<P: Object, T: Mutation<P>>(val: &Value) -> Result<T::Out> {
+    decode(val, &T::name(), true)
 }
 
 #[derive(derive_more::Display)]
-#[display(fmt = "query {{ {} }}", "enc(_0)")]
+#[display(fmt = "query {{ {} }}", _0)]
 pub struct Query1<'a, P1: Object, T1: Queryable<P1>>(pub &'a T1, pub PhantomData<P1>);
 
 impl<'a, P1: Object, T1: Queryable<P1>> Query1<'a, P1, T1> {
-    pub async fn build(self) -> Fetch<P1, _> {
-        Fetch::new(|val| dec_query::<_, T1>(&val))
+    pub fn build(self) -> Fetch<T1::Out> {
+        Fetch::new(self, |val| dec_query::<_, T1>(&val))
     }
 }
 
 #[derive(derive_more::Display)]
-#[display(fmt = "query {{ {} {} }}", "enc(_0)", "enc(_1)")]
+#[display(fmt = "query {{ {} {} }}", _0, _1)]
 pub struct Query2<'a, P1: Object, P2: Object, T1: Queryable<P1>, T2: Queryable<P2>>(
     pub &'a T1,
     pub &'a T2,
-    PhantomData<(P1, P2)>,
+    pub PhantomData<(P1, P2)>,
 );
 
 impl<'a, P1: Object, P2: Object, T1: Queryable<P1>, T2: Queryable<P2>> Query2<'a, P1, P2, T1, T2> {
-    pub async fn send(self, url: &str, token: Option<&str>) -> Result<(T1::Out, T2::Out), Error> {
-        let val = request(url, self.to_string(), token).await?;
-        Ok((dec_query::<_, T1>(&val)?, dec_query::<_, T2>(&val)?))
+    pub fn build(self) -> Fetch<(T1::Out, T2::Out)> {
+        let func = |val| Ok((dec_query::<_, T1>(&val)?, dec_query::<_, T2>(&val)?));
+        Fetch::new(self, func)
     }
 }
 
 #[derive(derive_more::Display)]
-#[display(fmt = "mutation {{ {} }}", "enc(_0)")]
-pub struct Mutation1<'a, P1: Object, T1: Mutation<P1>>(pub &'a T1, PhantomData<P1>);
+#[display(fmt = "mutation {{ {} }}", _0)]
+pub struct Mutation1<'a, P1: Object, T1: Mutation<P1>>(pub &'a T1, pub PhantomData<P1>);
 
 impl<'a, P1: Object, T1: Mutation<P1>> Mutation1<'a, P1, T1> {
-    pub async fn send(self, url: &str, token: Option<&str>) -> Result<T1::Out, Error> {
-        let val = request(url, self.to_string(), token).await?;
-        Ok(dec_mut::<_, T1>(&val)?)
+    pub fn build(self) -> Fetch<T1::Out> {
+        Fetch::new(self, |val| dec_mut::<_, T1>(&val))
     }
 }
 
 #[derive(derive_more::Display)]
-#[display(fmt = "mutation {{ {} {} }}", "enc(_0)", "enc(_1)")]
+#[display(fmt = "mutation {{ {} {} }}", _0, _1)]
 pub struct Mutation2<'a, P1: Object, P2: Object, T1: Mutation<P1>, T2: Mutation<P2>>(
     pub &'a T1,
     pub &'a T2,
@@ -104,29 +122,29 @@ pub struct Mutation2<'a, P1: Object, P2: Object, T1: Mutation<P1>, T2: Mutation<
 );
 
 impl<'a, P1: Object, P2: Object, T1: Mutation<P1>, T2: Mutation<P2>> Mutation2<'a, P1, P2, T1, T2> {
-    pub async fn send(self, url: &str, token: Option<&str>) -> Result<(T1::Out, T2::Out), Error> {
-        let val = request(url, self.to_string(), token).await?;
-        Ok((dec_mut::<_, T1>(&val)?, dec_mut::<_, T2>(&val)?))
+    pub fn build(self) -> Fetch<(T1::Out, T2::Out)> {
+        let func = |val| Ok((dec_mut::<_, T1>(&val)?, dec_mut::<_, T2>(&val)?));
+        Fetch::new(self, func)
     }
 }
 
 #[macro_export]
 macro_rules! query {
     ($a:ident) => {
-        Query1(&$a, std::marker::PhantomData::default())
+        Query1(&$a, std::marker::PhantomData::default()).build()
     };
     ($a:ident, $b:ident) => {
-        Query2(&$a, &$b, std::marker::PhantomData::default())
+        Query2(&$a, &$b, std::marker::PhantomData::default()).build()
     };
 }
 
 #[macro_export]
 macro_rules! mutation {
     ($a:ident) => {
-        Mutation1(&$a, std::marker::PhantomData::default())
+        Mutation1(&$a, std::marker::PhantomData::default()).build()
     };
     ($a:ident, $b:ident) => {
-        Mutation2(&$a, &$b, std::marker::PhantomData::default())
+        Mutation2(&$a, &$b, std::marker::PhantomData::default()).build()
     };
 }
 
