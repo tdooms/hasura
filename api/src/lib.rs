@@ -1,4 +1,5 @@
-pub use common::{Condition, Conditions, Field, Fields, Object, Pk};
+pub use common::{Field, Fields, Object, Pk};
+pub use conditions::*;
 pub use delete::{DeleteBuilder, DeleteByPk, DeleteByPkBuilder};
 pub use error::{Error, Result};
 pub use helpers::{Fetch, Mutation, Mutation1, Mutation2, Query1, Query2, Queryable};
@@ -8,6 +9,7 @@ pub use query::{Query, QueryBuilder, QueryByPk, QueryByPkBuilder};
 pub use update::{Update, UpdateBuilder, UpdateByPk, UpdateByPkBuilder};
 
 mod common;
+mod conditions;
 pub mod delete;
 mod error;
 mod helpers;
@@ -15,6 +17,6 @@ pub mod insert;
 mod macros;
 pub mod query;
 mod request;
-mod serializer;
+pub(crate) mod serializer;
 pub mod update;
 mod util;

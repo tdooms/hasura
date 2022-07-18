@@ -18,6 +18,14 @@ macro_rules! mutation {
     };
 }
 
+// #[macro_export]
+// macro_rules! condition {
+//     ($($a:stmt $b:stmt $c:stmt),+) => {
+//         let map: std::collections::HashMap<Field<'a, T>, (String, String)> = [$($a $b $c),+].iter().map(|(a, b, c)| (*a, (b.to_string(), c.to_string()))).collect();
+//         hasura::Conditions::Field()
+//     }
+// }
+
 // let condition1 = Condition {
 //     op: "_eq",
 //     value: "true",

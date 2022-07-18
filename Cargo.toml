@@ -9,6 +9,8 @@ members = ["api", "derive"]
 [dependencies]
 api = { path = "api" }
 derive = { path = "derive" }
-#tokio = { version = "1.20", features = ["full"] }
+
+[dev-dependencies]
+tokio = { version = "1.20", features = ["full"] }
 serde = "*"
 

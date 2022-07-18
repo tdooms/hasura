@@ -1,8 +1,8 @@
 use itertools::Itertools;
 
-use crate::common::{Conditions, Pk};
+use crate::common::Pk;
 use crate::util::construct_query;
-use crate::{serializer, Fields, Mutation, Object};
+use crate::{serializer, Conditions, Fields, Mutation, Object};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::fmt::Formatter;

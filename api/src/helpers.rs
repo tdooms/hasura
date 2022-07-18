@@ -58,7 +58,7 @@ impl<O> Fetch<O> {
 }
 
 fn decode<O: DeserializeOwned>(value: &Value, operation: &str, returning: bool) -> Result<O> {
-    log::debug!("operation={operation},entry={entry}");
+    log::debug!("operation={operation},value={value}");
     let mut entry = value.get(operation).ok_or(Error::Empty)?;
 
     if let (true, Some(new)) = (returning, entry.get("returning")) {
