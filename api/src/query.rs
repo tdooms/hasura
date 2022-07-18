@@ -85,7 +85,7 @@ impl<'a, T: Object + DeserializeOwned + Pk> Queryable<T> for QueryByPk<'a, T> {
 
 impl<T: Object + Pk + DeserializeOwned> std::fmt::Display for QueryByPk<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let params = [(None, serializer::to_string(&self.pk).unwrap())];
+        let params = [(None, serializer::to_string(&self.pk, false).unwrap())];
         let name = Self::name();
         construct_query(f, &name, &params, &self.returning, false, false)
     }

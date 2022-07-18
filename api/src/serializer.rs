@@ -71,7 +71,7 @@ pub struct Serializer {
 // Rust types the serializer is able to produce as output.
 //
 // This basic serializer supports only `to_string`.
-pub fn to_string<T>(value: &T) -> Result<String>
+pub fn to_string<T>(value: &T, braces: bool) -> Result<String>
 where
     T: Serialize,
 {
@@ -79,6 +79,12 @@ where
         output: String::new(),
     };
     value.serialize(&mut serializer)?;
+
+    if !braces {
+        serializer.output.pop();
+        serializer.output.remove(0);
+    }
+
     Ok(serializer.output)
 }
 
@@ -507,6 +513,8 @@ impl<'a> ser::SerializeStruct for &'a mut Serializer {
         if !self.output.ends_with('{') {
             self.output += ",";
         }
+
+        // CHANGES MADE: no quotes around key
         self.output += key;
         self.output += ":";
         value.serialize(&mut **self)

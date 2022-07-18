@@ -57,7 +57,7 @@ impl<'a, T: Object + DeserializeOwned + Pk> Mutation<T> for DeleteByPk<'a, T> {
 impl<'a, T: Object + Pk + DeserializeOwned> std::fmt::Display for DeleteByPk<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let name = Self::name();
-        let params = [(None, serializer::to_string(&self.pk).unwrap())];
+        let params = [(None, serializer::to_string(&self.pk, false).unwrap())];
 
         construct_query(f, &name, &params, &self.returning, false, false)
     }

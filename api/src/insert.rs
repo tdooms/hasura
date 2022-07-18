@@ -33,7 +33,7 @@ impl<'a, T: Object + Serialize + DeserializeOwned> std::fmt::Display for Insert<
         let objects = self
             .objects
             .iter()
-            .map(|x| serializer::to_string(x).unwrap())
+            .map(|x| serializer::to_string(x, true).unwrap())
             .format(", ");
 
         let name = Self::name();
@@ -66,7 +66,10 @@ impl<'a, T: Object + DeserializeOwned + Serialize> Mutation<T> for InsertOne<'a,
 
 impl<'a, T: Object + Serialize + DeserializeOwned> std::fmt::Display for InsertOne<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let params = [(Some("object"), serializer::to_string(&self.object).unwrap())];
+        let params = [(
+            Some("object"),
+            serializer::to_string(&self.object, true).unwrap(),
+        )];
         let name = Self::name();
 
         construct_query(f, &name, &params, &self.returning, false, false)

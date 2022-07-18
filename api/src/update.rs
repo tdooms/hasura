@@ -28,7 +28,10 @@ impl<'a, T: Object + DeserializeOwned + Serialize> Mutation<T> for Update<'a, T>
 
 impl<'a, T: Object + Serialize + DeserializeOwned> std::fmt::Display for Update<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut params = vec![(Some("_set"), serializer::to_string(&self.set).unwrap())];
+        let mut params = vec![(
+            Some("_set"),
+            serializer::to_string(&self.set, true).unwrap(),
+        )];
 
         if !self.conditions.is_empty() {
             let conditions = format!("{{ {} }}", self.conditions.iter().format(", "));
@@ -66,8 +69,14 @@ impl<'a, T: Object + Serialize + Pk + DeserializeOwned> std::fmt::Display for Up
         let name = Self::name();
 
         let params = [
-            (Some("_set"), serializer::to_string(&self.set).unwrap()),
-            (Some("pk_columns"), serializer::to_string(&self.pk).unwrap()),
+            (
+                Some("_set"),
+                serializer::to_string(&self.set, true).unwrap(),
+            ),
+            (
+                Some("pk_columns"),
+                serializer::to_string(&self.pk, false).unwrap(),
+            ),
         ];
 
         construct_query(f, &name, &params, &self.returning, false, false)
