@@ -8,13 +8,13 @@ pub use query::{Query, QueryBuilder, QueryByPk, QueryByPkBuilder};
 pub use update::{Update, UpdateBuilder, UpdateByPk, UpdateByPkBuilder};
 
 mod common;
-mod delete;
+pub mod delete;
 mod error;
 mod helpers;
-mod insert;
+pub mod insert;
 mod macros;
-mod query;
+pub mod query;
 mod request;
 mod serializer;
-mod update;
+pub mod update;
 mod util;
