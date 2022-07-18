@@ -58,13 +58,12 @@ impl<O> Fetch<O> {
 }
 
 fn decode<O: DeserializeOwned>(value: &Value, operation: &str, returning: bool) -> Result<O> {
+    log::debug!("operation={operation},entry={entry}");
     let mut entry = value.get(operation).ok_or(Error::Empty)?;
 
     if let (true, Some(new)) = (returning, entry.get("returning")) {
         entry = new
     }
-
-    log::debug!("operation={operation},entry={entry}");
 
     Ok(serde_json::from_value(entry.clone())?)
 }
