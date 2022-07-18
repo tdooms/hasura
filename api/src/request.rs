@@ -37,6 +37,8 @@ pub async fn request(
         .text()
         .await?;
 
+    log::trace!("{}", text);
+
     match serde_json::from_str(&text)? {
         Response::Data { data } => Ok(data),
         Response::Errors { errors } => Err(Error::Hasura(errors)),
