@@ -1,8 +1,6 @@
 use crate::error::Error;
-use reqwest::header::HeaderMap;
-use reqwest::Client;
+use gloo_net::http::{Headers, Request};
 use serde_json::Value;
-use std::fmt::Debug;
 
 #[derive(serde::Deserialize, Debug)]
 pub struct GraphqlError {
@@ -23,16 +21,15 @@ pub async fn request(
     token: Option<String>,
     admin: Option<String>,
 ) -> Result<Value, Error> {
-    let mut headers = HeaderMap::new();
+    let headers = Headers::new();
     if let Some(token) = token {
-        headers.insert("authorization", token.parse().unwrap());
+        headers.set("authorization", &token);
     }
     if let Some(admin) = admin {
-        headers.insert("x-hasura-admin-secret", admin.parse().unwrap());
+        headers.set("x-hasura-admin-secret", &admin);
     }
 
-    let text = Client::new()
-        .post(url)
+    let text = Request::post(url)
         .headers(headers)
         .body(body)
         .send()
