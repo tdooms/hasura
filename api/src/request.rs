@@ -37,7 +37,8 @@ pub async fn request(
         .text()
         .await?;
 
-    log::trace!("{}", text);
+    log::trace!("GraphQL request  {}", body);
+    log::trace!("GraphQL response {}", text);
 
     match serde_json::from_str(&text)? {
         Response::Data { data } => Ok(data),
