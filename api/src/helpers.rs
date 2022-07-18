@@ -64,7 +64,7 @@ fn decode<O: DeserializeOwned>(value: &Value, operation: &str, returning: bool) 
         entry = new
     }
 
-    log::debug!("operation={op},entry={entry}");
+    log::debug!("operation={operation},entry={entry}");
 
     Ok(serde_json::from_value(entry.clone())?)
 }
