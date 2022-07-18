@@ -156,7 +156,10 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_u64(self, v: u64) -> Result<()> {
+        // CHANGES MADE: quotes around integers
+        self.output += "\"";
         self.output += &v.to_string();
+        self.output += "\"";
         Ok(())
     }
 
@@ -165,7 +168,10 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_f64(self, v: f64) -> Result<()> {
+        // CHANGES MADE: no quotes around floats
+        self.output += "\"";
         self.output += &v.to_string();
+        self.output += "\"";
         Ok(())
     }
 
