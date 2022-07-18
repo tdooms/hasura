@@ -9,6 +9,7 @@ serde_json = "*"
 
 log = "0.4"
 gloo-net = { version = "0.2", default_features = false, features = ["http"] }
+wasm-timer = "0.2"
 
 derive_more = "0.99"
 itertools = "0.10"

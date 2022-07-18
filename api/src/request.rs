@@ -29,6 +29,9 @@ pub async fn request(
         headers.set("x-hasura-admin-secret", &admin);
     }
 
+    log::trace!("GraphQL request  {}", body);
+    let now = wasm_timer::Instant::now();
+
     let text = Request::post(url)
         .headers(headers)
         .body(body)
@@ -37,7 +40,7 @@ pub async fn request(
         .text()
         .await?;
 
-    log::trace!("GraphQL request  {}", body);
+    log::trace!("response after {:?}", now.elapsed());
     log::trace!("GraphQL response {}", text);
 
     match serde_json::from_str(&text)? {
