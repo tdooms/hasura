@@ -1,14 +1,16 @@
-pub use crate::common::{Condition, Conditions, Field, Fields, Object, Pk};
-pub use crate::delete::{DeleteBuilder, DeleteByPk, DeleteByPkBuilder};
-pub use crate::insert::{Insert, InsertBuilder, InsertOne, InsertOneBuilder};
-pub use crate::macros::*;
-pub use crate::query::{Query, QueryBuilder, QueryByPk, QueryByPkBuilder};
-pub use crate::update::{Update, UpdateBuilder, UpdateByPk, UpdateByPkBuilder};
+pub use common::{Condition, Conditions, Field, Fields, Object, Pk};
+pub use delete::{DeleteBuilder, DeleteByPk, DeleteByPkBuilder};
 pub use error::{Error, Result};
+pub use helpers::{Fetch, Mutation, Mutation1, Mutation2, Query1, Query2, Queryable};
+pub use insert::{Insert, InsertBuilder, InsertOne, InsertOneBuilder};
+pub use macros::*;
+pub use query::{Query, QueryBuilder, QueryByPk, QueryByPkBuilder};
+pub use update::{Update, UpdateBuilder, UpdateByPk, UpdateByPkBuilder};
 
 mod common;
 mod delete;
 mod error;
+mod helpers;
 mod insert;
 mod macros;
 mod query;
