@@ -19,7 +19,7 @@ struct Customer {
 }
 
 #[tokio::test]
-async fn main() {
+async fn main() -> Result<()> {
     let draft1 = DraftCustomer {
         name: "John".to_string(),
         member: false,
@@ -64,18 +64,17 @@ async fn main() {
     let (inserted, updated) = mutation!(insert, update_by_pk)
         .admin(Some(admin.to_owned()))
         .send(url)
-        .await
-        .unwrap();
+        .await?;
 
-    println!("{inserted:?}\n{updated:?}");
+    println!("inserted={inserted:?}\nupdated={updated:?}");
 
     let page = query!(customers)
         .admin(Some(admin.to_owned()))
         .send(url)
-        .await
-        .unwrap();
+        .await?;
 
-    println!("{:?}", page);
+    println!("page={:?}", page);
+    Ok(())
 
     // let simple: Query<Quiz> = QueryBuilder::default().build().unwrap();
     // println!("{}", query!(simple));

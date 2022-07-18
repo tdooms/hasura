@@ -57,14 +57,11 @@ impl<O> Fetch<O> {
     }
 }
 
-fn decode<O: DeserializeOwned>(value: &Value, op: &str, ret: bool) -> Result<O> {
+fn decode<O: DeserializeOwned>(value: &Value, op: &str, returning: bool) -> Result<O> {
     let mut entry = value.get(op).ok_or(Error::Empty)?;
 
-    if ret {
-        entry = match entry.get("returning") {
-            Some(entry) => entry,
-            None => entry,
-        };
+    if let (true, Some(new)) = (returning, entry.get("returning")) {
+        entry = new
     }
 
     Ok(serde_json::from_value(entry.clone())?)
