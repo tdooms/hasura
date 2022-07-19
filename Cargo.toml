@@ -1,16 +1,18 @@
 [package]
 name = "hasura"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 [features]
 wasm = ["gloo-net", "log", "wasm-timer"]
-native = ["tokio", "reqwest"]
-default = ["wasm"]
+native = ["reqwest"]
 
 
 [workspace]
 members = ["derive", "wasm"]
+
+[dev-dependencies]
+tokio = { version = "1.20", features = ["full"] }
 
 [dependencies]
 derive = { path = "derive" }
@@ -18,7 +20,6 @@ derive = { path = "derive" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 
-tokio = { version = "1.20", features = ["full"], optional = true }
 reqwest = { version = "0.11", optional = true }
 
 log = { version = "0.4", optional = true }
