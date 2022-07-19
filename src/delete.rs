@@ -9,6 +9,7 @@ use std::marker::PhantomData;
 #[derive(derive_builder::Builder)]
 #[builder(pattern = "owned")]
 pub struct Delete<'a, T: Object> {
+    #[builder(default)]
     conditions: Vec<Conditions<'a, T>>,
     #[builder(default)]
     affected_rows: bool,
