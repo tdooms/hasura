@@ -44,7 +44,7 @@ pub async fn request(
     }
 }
 
-#[cfg(feature = "wasm")]
+#[cfg(all(feature = "wasm", not(feature = "native")))]
 pub async fn request(
     url: &str,
     body: String,
