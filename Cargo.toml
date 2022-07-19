@@ -3,14 +3,32 @@ name = "hasura"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+wasm = ["gloo-net", "log", "wasm-timer"]
+native = ["tokio", "reqwest"]
+default = ["wasm"]
+
+
 [workspace]
-members = ["api", "derive"]
+members = ["derive", "wasm"]
 
 [dependencies]
-api = { path = "api" }
 derive = { path = "derive" }
 
-[dev-dependencies]
-tokio = { version = "1.20", features = ["full"] }
-serde = "*"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+
+tokio = { version = "1.20", features = ["full"], optional = true }
+reqwest = { version = "0.11", optional = true }
+
+log = { version = "0.4", optional = true }
+gloo-net = { version = "0.2", default_features = false, features = ["http"], optional = true }
+wasm-timer = { version = "0.2", optional = true }
+
+derive_more = "0.99"
+itertools = "0.10"
+thiserror = "1.0"
+
+derive_builder = "0.11.1"
+chrono = { version = "0.4" }
 

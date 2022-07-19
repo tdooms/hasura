@@ -1,7 +1,6 @@
+use crate::{Fields, Object};
 use itertools::Itertools;
 use std::fmt::Formatter;
-
-use crate::{Fields, Object};
 
 pub fn construct_query<T: Object>(
     f: &mut Formatter<'_>,

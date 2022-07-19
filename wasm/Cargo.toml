@@ -1,0 +1,14 @@
+[package]
+name = "wasm"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+yew = { git = "https://github.com/yewstack/yew.git", rev = "421b4e1f608e6d648dcf571157b081fcbd886996", features = ["csr"] }
+hasura = {path = ".."}
+serde = "*"
+
+log = "0.4"
+wasm-logger = "0.2"
+
+wasm-bindgen-futures = "0.4"

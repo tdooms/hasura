@@ -18,6 +18,7 @@ pub struct Customer {
     email: Option<String>,
 }
 
+#[cfg(test)]
 #[tokio::test]
 async fn simple_query() -> Result<()> {
     let customers = QueryBuilder::default()
@@ -33,6 +34,7 @@ async fn simple_query() -> Result<()> {
     Ok(())
 }
 
+#[cfg(test)]
 #[tokio::test]
 async fn complex_query() -> Result<()> {
     let customers = QueryBuilder::default()
@@ -51,6 +53,7 @@ async fn complex_query() -> Result<()> {
     Ok(())
 }
 
+#[cfg(test)]
 #[tokio::test]
 async fn delete() -> Result<()> {
     let conditions = Conditions::single(Customer::name(), Eq("John"));
