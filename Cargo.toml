@@ -6,6 +6,7 @@ edition = "2021"
 [features]
 wasm = ["gloo-net", "log", "wasm-timer"]
 native = ["reqwest"]
+default = []
 
 
 [workspace]
