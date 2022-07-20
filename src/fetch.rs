@@ -58,7 +58,9 @@ impl<O> Fetch<O> {
 }
 
 fn decode<O: DeserializeOwned>(value: &Value, operation: &str, returning: bool) -> Result<O> {
+    println!("{value}, {operation}");
     let mut entry = value.get(operation).ok_or(Error::Empty)?;
+    println!("{entry}");
 
     if let (true, Some(new)) = (returning, entry.get("returning")) {
         entry = new
@@ -68,7 +70,7 @@ fn decode<O: DeserializeOwned>(value: &Value, operation: &str, returning: bool) 
 }
 
 fn dec_query<P: Object, T: Queryable<P>>(val: &Value) -> Result<T::Out> {
-    decode(val, P::name(), false)
+    decode(val, &T::name(), false)
 }
 
 fn dec_mut<P: Object, T: Mutation<P>>(val: &Value) -> Result<T::Out> {

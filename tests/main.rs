@@ -19,8 +19,8 @@ pub struct Customer {
 }
 
 #[cfg(test)]
-#[tokio::test]
-async fn simple_query() -> Result<()> {
+#[test]
+fn simple_query() -> Result<()> {
     let customers = QueryBuilder::default()
         .returning(Customer::all())
         .build()
@@ -35,8 +35,8 @@ async fn simple_query() -> Result<()> {
 }
 
 #[cfg(test)]
-#[tokio::test]
-async fn complex_query() -> Result<()> {
+#[test]
+fn complex_query() -> Result<()> {
     let customers = QueryBuilder::default()
         .returning(Customer::all())
         .distinct_on(Customer::name())
@@ -54,8 +54,8 @@ async fn complex_query() -> Result<()> {
 }
 
 #[cfg(test)]
-#[tokio::test]
-async fn delete() -> Result<()> {
+#[test]
+fn delete() -> Result<()> {
     let conditions = Conditions::single(Customer::name(), Eq("John"));
 
     let customers = DeleteBuilder::default()
