@@ -72,6 +72,48 @@ fn delete() -> Result<()> {
     Ok(())
 }
 
+#[cfg(test)]
+#[test]
+fn conditions() -> Result<()> {
+    let conditions = Conditions::single(Customer::name(), Ilike("%J%"));
+
+    let customers = DeleteBuilder::default()
+        .conditions(vec![conditions])
+        .returning(Customer::all())
+        .build()
+        .unwrap();
+
+    assert_eq!(
+        customers.to_string(),
+        "delete_customers(where: { name: { _ilike : \"%J%\" } }) { returning { c_id member name email } }"
+    );
+
+    Ok(())
+}
+
+#[cfg(test)]
+#[test]
+fn update_by_pk() -> Result<()> {
+    let customer = DraftCustomer {
+        member: false,
+        name: "Bert".to_string(),
+        email: None,
+    };
+    let updated = UpdateByPkBuilder::default()
+        .pk(CustomerPk { c_id: 116 })
+        .set(customer)
+        .returning(Customer::all())
+        .build()
+        .unwrap();
+
+    assert_eq!(
+        updated.to_string(),
+        "update_customers_by_pk(_set: {member:false,name:\"Bert\",email:null}, pk_columns: {c_id:\"116\"}) { c_id member name email }"
+    );
+
+    Ok(())
+}
+
 // let draft2 = DraftCustomer {
 //     name: "John The Second".to_string(),
 //     member: true,

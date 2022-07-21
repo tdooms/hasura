@@ -75,7 +75,7 @@ impl<'a, T: Object + Serialize + Pk + DeserializeOwned> std::fmt::Display for Up
             ),
             (
                 Some("pk_columns"),
-                serializer::to_string(&self.pk, false).unwrap(),
+                serializer::to_string(&self.pk, true).unwrap(),
             ),
         ];
 
