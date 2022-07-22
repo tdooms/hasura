@@ -101,6 +101,40 @@ impl<'a, P1: Object, P2: Object, T1: Queryable<P1>, T2: Queryable<P2>> Query2<'a
 }
 
 #[derive(derive_more::Display)]
+#[display(fmt = "query {{ {} {} }}", _0, _1)]
+pub struct Query3<
+    'a,
+    P1: Object,
+    P2: Object,
+    P3: Object,
+    T1: Queryable<P1>,
+    T2: Queryable<P2>,
+    T3: Queryable<P3>,
+>(pub &'a T1, pub &'a T2, pub &'a T3, pub PhantomData<(P1, P2, P3)>);
+
+impl<
+        'a,
+        P1: Object,
+        P2: Object,
+        P3: Object,
+        T1: Queryable<P1>,
+        T2: Queryable<P2>,
+        T3: Queryable<P3>,
+    > Query3<'a, P1, P2, P3, T1, T2, T3>
+{
+    pub fn build(self) -> Fetch<(T1::Out, T2::Out, T3::Out)> {
+        let func = |val| {
+            Ok((
+                dec_query::<_, T1>(&val)?,
+                dec_query::<_, T2>(&val)?,
+                dec_query::<_, T3>(&val)?,
+            ))
+        };
+        Fetch::new(self, func)
+    }
+}
+
+#[derive(derive_more::Display)]
 #[display(fmt = "mutation {{ {} }}", _0)]
 pub struct Mutation1<'a, P1: Object, T1: Mutation<P1>>(pub &'a T1, pub PhantomData<P1>);
 
@@ -121,6 +155,45 @@ pub struct Mutation2<'a, P1: Object, P2: Object, T1: Mutation<P1>, T2: Mutation<
 impl<'a, P1: Object, P2: Object, T1: Mutation<P1>, T2: Mutation<P2>> Mutation2<'a, P1, P2, T1, T2> {
     pub fn build(self) -> Fetch<(T1::Out, T2::Out)> {
         let func = |val| Ok((dec_mut::<_, T1>(&val)?, dec_mut::<_, T2>(&val)?));
+        Fetch::new(self, func)
+    }
+}
+
+#[derive(derive_more::Display)]
+#[display(fmt = "mutation {{ {} {} {} }}", _0, _1, _2)]
+pub struct Mutation3<
+    'a,
+    P1: Object,
+    P2: Object,
+    P3: Object,
+    T1: Mutation<P1>,
+    T2: Mutation<P2>,
+    T3: Mutation<P3>,
+>(
+    pub &'a T1,
+    pub &'a T2,
+    pub &'a T3,
+    pub PhantomData<(P1, P2, P3)>,
+);
+
+impl<
+        'a,
+        P1: Object,
+        P2: Object,
+        P3: Object,
+        T1: Mutation<P1>,
+        T2: Mutation<P2>,
+        T3: Mutation<P3>,
+    > Mutation3<'a, P1, P2, P3, T1, T2, T3>
+{
+    pub fn build(self) -> Fetch<(T1::Out, T2::Out, T3::Out)> {
+        let func = |val| {
+            Ok((
+                dec_mut::<_, T1>(&val)?,
+                dec_mut::<_, T2>(&val)?,
+                dec_mut::<_, T3>(&val)?,
+            ))
+        };
         Fetch::new(self, func)
     }
 }
