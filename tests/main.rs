@@ -29,8 +29,13 @@ pub struct Item {
     value: String,
 }
 
+fn skip_empty(x: &Data<Vec<DraftItem>>) -> bool {
+    x.data.is_empty()
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DraftStore {
+    #[serde(skip_serializing_if = "skip_empty")]
     items: Data<Vec<DraftItem>>,
 }
 
