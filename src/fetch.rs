@@ -2,6 +2,7 @@ use crate::error::{Error, Result};
 use crate::request::request;
 use crate::Object;
 use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fmt::{Debug, Display, Formatter};
 use std::marker::PhantomData;
@@ -14,6 +15,11 @@ pub trait Queryable<P: Object>: Display {
 pub trait Mutation<P: Object>: Display {
     type Out: DeserializeOwned;
     fn name() -> String;
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct Data<T: Serialize> {
+    pub data: T,
 }
 
 pub struct Fetch<O> {
@@ -110,7 +116,12 @@ pub struct Query3<
     T1: Queryable<P1>,
     T2: Queryable<P2>,
     T3: Queryable<P3>,
->(pub &'a T1, pub &'a T2, pub &'a T3, pub PhantomData<(P1, P2, P3)>);
+>(
+    pub &'a T1,
+    pub &'a T2,
+    pub &'a T3,
+    pub PhantomData<(P1, P2, P3)>,
+);
 
 impl<
         'a,
