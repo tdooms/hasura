@@ -17,7 +17,7 @@ pub trait Mutation<P: Object>: Display {
     fn name() -> String;
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Default)]
 pub struct Data<T: Serialize> {
     pub data: T,
 }
