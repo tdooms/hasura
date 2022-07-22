@@ -8,7 +8,7 @@ impl Attributes {
     pub fn from_syn_attrs(attrs: &[syn::Attribute]) -> Result<Self, String> {
         let attr = attrs
             .first()
-            .ok_or_else(|| "no attributes found".to_owned())?;
+            .ok_or_else(|| "must specify name in attributes".to_owned())?;
 
         let meta_mapper = |nested| match nested {
             syn::NestedMeta::Meta(syn::Meta::NameValue(nv)) => Some((nv.path, nv.lit)),

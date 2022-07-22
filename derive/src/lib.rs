@@ -12,6 +12,7 @@ use crate::generate::{ObjectInfo, PkInfo};
 mod attributes;
 mod fields;
 mod generate;
+mod strip;
 
 #[proc_macro_derive(Object, attributes(name, object))]
 pub fn object_derive(tokens: TokenStream) -> TokenStream {

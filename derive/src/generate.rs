@@ -2,6 +2,7 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
 use crate::fields::Field;
+use crate::strip::{extract_type_from_option, extract_type_from_vec};
 
 pub struct PkInfo {
     pub ident: syn::Ident,
@@ -48,7 +49,15 @@ impl ToTokens for ObjectInfo {
 
         let map_field_elems = |Field { ident, ty, expand }| match expand {
             false => quote!(Self::#ident()),
-            true => quote!(Self::#ident(#ty::all())),
+            true => {
+                if let Some(ty) = extract_type_from_option(&ty) {
+                    quote!(Self::#ident(#ty::all()))
+                } else if let Some(ty) = extract_type_from_vec(&ty) {
+                    quote!(Self::#ident(#ty::all()))
+                } else {
+                    quote!(Self::#ident(#ty::all()))
+                }
+            }
         };
 
         let field_elems = fields.iter().cloned().map(map_field_elems);

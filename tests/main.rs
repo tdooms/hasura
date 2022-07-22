@@ -10,12 +10,21 @@ pub struct DraftCustomer {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, hasura::Object, hasura::Pk)]
+#[object(name = "customers", pk = "name")]
+pub struct Item {
+    name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, hasura::Object, hasura::Pk)]
 #[object(name = "customers", pk = "c_id", draft = "DraftCustomer")]
 pub struct Customer {
     c_id: u64,
     member: bool,
     name: String,
     email: Option<String>,
+
+    #[object(expand)]
+    items: Vec::<Item>,
 }
 
 #[cfg(test)]
