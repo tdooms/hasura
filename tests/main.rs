@@ -23,7 +23,7 @@ pub struct DraftItem {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, hasura::Object, hasura::Pk)]
-#[object(name = "customers", pk = "value", pk = "c_id")]
+#[object(name = "items", pk = "value", pk = "c_id")]
 pub struct Item {
     s_id: u64,
     value: String,
@@ -40,7 +40,7 @@ pub struct DraftStore {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, hasura::Object, hasura::Pk)]
-#[object(name = "customers", pk = "c_id", draft = "DraftStore")]
+#[object(name = "stores", pk = "s_id", draft = "DraftStore")]
 pub struct Store {
     s_id: u64,
     #[object(expand)]
@@ -167,7 +167,7 @@ fn recursive_insert() -> Result<()> {
 
     assert_eq!(
         inserted.to_string(),
-        "insert_customers_one(object: {items:{data:[{value:\"x\"},{value:\"y\"}]}}) { s_id items { s_id value } }"
+        "insert_stores_one(object: {items:{data:[{value:\"x\"},{value:\"y\"}]}}) { s_id items { s_id value } }"
     );
 
     Ok(())
@@ -176,8 +176,9 @@ fn recursive_insert() -> Result<()> {
 #[cfg(test)]
 #[test]
 fn recursive_except() -> Result<()> {
+    let returning = Store::except(&[Store::items(Item::all())]);
     let query = QueryBuilder::default()
-        .returning(Store::except(&[Store::items(Item::all())]))
+        .returning(returning)
         .build()
         .unwrap();
 
