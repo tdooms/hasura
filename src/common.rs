@@ -18,11 +18,17 @@ pub trait Object {
         Self: Sized;
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub struct Field<'a, T: Object + ?Sized> {
     pub name: &'a str,
     pub inner: Vec<String>,
     pub phantom: PhantomData<T>,
+}
+
+impl<'a, T: Object> PartialEq for Field<'a, T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.name.eq(other.name)
+    }
 }
 
 impl<'a, T: Object> Field<'a, T> {

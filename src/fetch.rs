@@ -1,5 +1,4 @@
 use crate::error::{Error, Result};
-use crate::request::request;
 use crate::Object;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -57,8 +56,9 @@ impl<O> Fetch<O> {
         self
     }
 
+    #[cfg(any(feature = "wasm", feature = "native"))]
     pub async fn send(self, url: &str) -> Result<O> {
-        let val = request(url, self.body, self.token, self.admin).await?;
+        let val = crate::request::request(url, self.body, self.token, self.admin).await?;
         (self.extract)(val)
     }
 }
