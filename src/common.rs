@@ -12,6 +12,10 @@ pub trait Object {
     fn all<'a>() -> Fields<'a, Self>
     where
         Self: Sized;
+
+    fn except<'a>(fields: &[Field<'a, Self>]) -> Fields<'a, Self>
+    where
+        Self: Sized;
 }
 
 #[derive(Clone, PartialEq)]

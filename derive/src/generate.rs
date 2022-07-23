@@ -60,7 +60,7 @@ impl ToTokens for ObjectInfo {
             }
         };
 
-        let field_elems = fields.iter().cloned().map(map_field_elems);
+        let field_elems: Vec<_> = fields.iter().cloned().map(map_field_elems).collect();
 
         let map_field_fn = |Field { ident, expand, .. }| {
             if expand {
@@ -90,6 +90,11 @@ impl ToTokens for ObjectInfo {
                 type Draft = #draft;
                 fn name<'a>() -> &'a str { #name }
                 fn all<'a>() -> hasura::Fields<'a, Self> { hasura::Fields{inner: vec![#(#field_elems),*]} }
+                fn except<'a>(fields: &[Field<'a, Self>]) -> hasura::Fields<'a, Self> {
+                    let mut inner = vec![#(#field_elems),*];
+                    all.inner.retain(|f| fields.contains(f));
+                    hasura::Fields{inner}
+                }
             }
         };
 

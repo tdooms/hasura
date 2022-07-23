@@ -172,3 +172,19 @@ fn recursive_insert() -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+#[test]
+fn recursive_except() -> Result<()> {
+    let query = QueryBuilder::default()
+        .returning(Store::except(&[Store::items(Item::all())]))
+        .build()
+        .unwrap();
+
+    assert_eq!(
+        query.to_string(),
+        "stores { s_id }"
+    );
+
+    Ok(())
+}
