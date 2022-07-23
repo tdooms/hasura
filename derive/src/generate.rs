@@ -90,7 +90,7 @@ impl ToTokens for ObjectInfo {
                 type Draft = #draft;
                 fn name<'a>() -> &'a str { #name }
                 fn all<'a>() -> hasura::Fields<'a, Self> { hasura::Fields{inner: vec![#(#field_elems),*]} }
-                fn except<'a>(fields: &[Field<'a, Self>]) -> hasura::Fields<'a, Self> {
+                fn except<'a>(fields: &[hasura::Field<'a, Self>]) -> hasura::Fields<'a, Self> {
                     let mut inner = vec![#(#field_elems),*];
                     inner.retain(|f| !fields.contains(f));
                     hasura::Fields{inner}
