@@ -14,7 +14,7 @@ pub trait Object {
         Self: Sized;
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Field<'a, T: Object + ?Sized> {
     pub name: &'a str,
     pub inner: Vec<String>,
