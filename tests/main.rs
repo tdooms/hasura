@@ -33,10 +33,19 @@ fn skip_empty(x: &Data<Vec<DraftItem>>) -> bool {
     x.data.is_empty()
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct Manager {
+    name: String,
+    size: u64,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DraftStore {
     #[serde(skip_serializing_if = "skip_empty")]
     items: Data<Vec<DraftItem>>,
+
+    #[serde(flatten)]
+    manager: Manager,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, hasura::Object, hasura::Pk)]
@@ -45,6 +54,9 @@ pub struct Store {
     s_id: u64,
     #[object(expand)]
     items: Vec<Item>,
+
+    #[serde(flatten)]
+    manager: Manager,
 }
 
 #[cfg(test)]
@@ -153,21 +165,22 @@ fn recursive_insert() -> Result<()> {
         value: "y".to_string(),
     };
 
-    let customer = DraftStore {
+    let store = DraftStore {
         items: Data {
             data: vec![item0, item1],
         },
+        manager: Manager::default(),
     };
 
     let inserted = InsertOneBuilder::default()
-        .object(customer)
+        .object(store)
         .returning(Store::all())
         .build()
         .unwrap();
 
     assert_eq!(
         inserted.to_string(),
-        "insert_stores_one(object: {items:{data:[{value:\"x\"},{value:\"y\"}]}}) { s_id items { s_id value } }"
+        "insert_stores_one(object: {items:{data:[{value:\"x\"},{value:\"y\"}]},name:\"\",size:\"0\"}) { s_id items { s_id value } manager }"
     );
 
     Ok(())
@@ -182,10 +195,37 @@ fn recursive_except() -> Result<()> {
         .build()
         .unwrap();
 
-    assert_eq!(
-        query.to_string(),
-        "stores { s_id }"
-    );
+    assert_eq!(query.to_string(), "stores { s_id manager }");
 
+    Ok(())
+}
+
+#[cfg(test)]
+#[test]
+fn insert_many() -> Result<()> {
+    let item0 = DraftItem {
+        value: "x".to_string(),
+    };
+    let item1 = DraftItem {
+        value: "y".to_string(),
+    };
+
+    let store0 = DraftStore {
+        items: Data { data: vec![item1] },
+        manager: Manager::default(),
+    };
+
+    let store1 = DraftStore {
+        items: Data { data: vec![item0] },
+        manager: Manager::default(),
+    };
+
+    let inserted = InsertBuilder::default()
+        .objects(vec![store0, store1])
+        .returning(Store::all())
+        .build()
+        .unwrap();
+
+    assert_eq!(inserted.to_string(), "insert_stores(objects: [ {items:{data:[{value:\"y\"}]},name:\"\",size:\"0\"}, {items:{data:[{value:\"x\"}]},name:\"\",size:\"0\"} ]) { returning { s_id items { s_id value } manager } }");
     Ok(())
 }

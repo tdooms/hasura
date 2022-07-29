@@ -64,6 +64,7 @@ impl std::error::Error for Error {}
 pub struct Serializer {
     // This string starts empty and JSON is appended as values are serialized.
     output: String,
+    skip_quotes: bool,
 }
 
 // By convention, the public API of a Serde serializer is one or more `to_abc`
@@ -77,6 +78,7 @@ where
 {
     let mut serializer = Serializer {
         output: String::new(),
+        skip_quotes: false,
     };
     value.serialize(&mut serializer)?;
 
@@ -185,9 +187,13 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     // get the idea. For example it would emit invalid JSON if the input string
     // contains a '"' character.
     fn serialize_str(self, v: &str) -> Result<()> {
-        self.output += "\"";
+        if !self.skip_quotes {
+            self.output += "\""
+        }
         self.output += v;
-        self.output += "\"";
+        if !self.skip_quotes {
+            self.output += "\""
+        }
         Ok(())
     }
 
@@ -486,7 +492,10 @@ impl<'a> ser::SerializeMap for &'a mut Serializer {
         if !self.output.ends_with('{') {
             self.output += ",";
         }
-        key.serialize(&mut **self)
+        self.skip_quotes = true;
+        let res = key.serialize(&mut **self);
+        self.skip_quotes = false;
+        res
     }
 
     // It doesn't make a difference whether the colon is printed at the end of
