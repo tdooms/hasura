@@ -18,9 +18,8 @@ pub async fn test() {
         .unwrap();
 
     let endpoint = "https://pixeltest.hasura.app/v1/graphql";
-    let admin = Some("TAZYDFQkwpSq9YocAg47LgyjJlbB5hs1wipNjmCtRgiDSQcg9eFLW1QCOb23nS4h".to_owned());
 
-    let result = query!(customers).admin(admin).send(endpoint).await.unwrap();
+    let result = query!(customers).send(endpoint).await.unwrap();
     log::info!("{:?}", result);
 }
 
@@ -41,5 +40,5 @@ pub fn app() -> Html {
 
 pub fn main() {
     wasm_logger::init(wasm_logger::Config::new(log::Level::Trace));
-    yew::Renderer::<App>::new().render();
+    Renderer::<App>::new().render();
 }

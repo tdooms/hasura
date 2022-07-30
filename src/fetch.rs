@@ -26,7 +26,6 @@ pub struct Fetch<O> {
     pub extract: Box<dyn FnOnce(Value) -> Result<O>>,
 
     pub token: Option<String>,
-    pub admin: Option<String>,
 }
 
 impl<O> Debug for Fetch<O> {
@@ -42,7 +41,6 @@ impl<O> Fetch<O> {
             body: format!("{{\"query\": \"{}\"}}", body),
             extract: Box::new(extract),
             token: None,
-            admin: None,
         }
     }
 
@@ -51,14 +49,8 @@ impl<O> Fetch<O> {
         self
     }
 
-    pub fn admin(mut self, admin: Option<String>) -> Self {
-        self.admin = admin;
-        self
-    }
-
-    #[cfg(any(feature = "wasm", feature = "native"))]
     pub async fn send(self, url: &str) -> Result<O> {
-        let val = crate::request::request(url, self.body, self.token, self.admin).await?;
+        let val = crate::request::request(url, self.body, self.token).await?;
         (self.extract)(val)
     }
 }

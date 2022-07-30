@@ -4,10 +4,8 @@ version = "0.2.0"
 edition = "2021"
 
 [features]
-wasm = ["gloo-net", "log", "wasm-timer"]
-native = ["reqwest"]
+timing = ["log", "wasm-timer"]
 default = []
-
 
 [workspace]
 members = ["derive", "wasm", "expand"]
@@ -21,10 +19,9 @@ derive = { path = "derive" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 
-reqwest = { version = "0.11", optional = true }
+reqwest = { version = "0.11" }
 
 log = { version = "0.4", optional = true }
-gloo-net = { version = "0.2", default_features = false, features = ["http"], optional = true }
 wasm-timer = { version = "0.2", optional = true }
 
 derive_more = "0.99"
@@ -32,5 +29,4 @@ itertools = "0.10"
 thiserror = "1.0"
 
 derive_builder = "0.11.1"
-chrono = { version = "0.4" }
-
+chrono = "0.4"
