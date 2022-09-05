@@ -1,46 +1,70 @@
-use crate::attributes::Fields;
-use crate::{Fields, Object};
-use itertools::Itertools;
+use crate::{Fields, Hasura};
 use std::fmt::{Display, Formatter};
+use itertools::Itertools;
 
-pub struct Braced<T: Display> {
-    inner: T,
-}
+pub struct Braced<'a, T: Display> (pub &'a T);
+pub struct Separated<'a, T: Display>(pub &'a [T]);
 
-impl<T: Display> Display for Braced<T> {
+impl<'a, T: Display> Display for Braced<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{{ {} }}", self.inner)
+        write!(f, "{{ {} }}", self.0)
     }
 }
 
-#[derive(Default)]
-pub struct Builder<'a, T> {
+impl<'a, T: Display> Display for Separated<'a, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0.iter().join(" "))
+    }
+}
+
+pub struct Builder<'a, T: Hasura> {
     name: Option<String>,
 
     params: Vec<(&'a str, &'a dyn Display)>,
-    returning: &'a Fields<'a, T>,
+    returning: Option<&'a Fields<'a, T>>,
 
     affected: bool,
     explicit: bool,
 }
 
-impl<'a, T> Builder<'a, T> {
+impl<T: Hasura> Default for Builder<'_, T> {
+    fn default() -> Self {
+        Builder {
+            name: None,
+            params: vec![],
+            returning: None,
+            affected: false,
+            explicit: false,
+        }
+    }
+}
+
+impl<'a, T: Hasura> Builder<'a, T> {
     pub fn name(mut self, name: String) -> Self {
         self.name = Some(name);
         self
     }
 
-    pub fn param(mut self, key: &'a str, value: &'a dyn Display) -> Self {
+    pub fn param<D: Display>(mut self, key: &'a str, value: &'a D) -> Self {
         self.params.push((key, value));
         self
     }
 
-    pub fn maybe(mut self, key: &'a str, value: Option<&'a dyn Display>) -> Self {
-        value.map(|value| self.param(key, value));
+    pub fn vector<D: Display>(mut self, key: &'a str, value: &'a Separated<'a, D>) -> Self {
+        if !value.0.is_empty() {
+            self.params.push((key, value))
+        }
         self
     }
+
+    pub fn maybe<D: Display>(self, key: &'a str, value: Option<&'a D>) -> Self {
+        match value {
+            Some(value) => self.param(key, value),
+            None => self,
+        }
+    }
     pub fn returning(mut self, returning: &'a Fields<'a, T>) -> Self {
-        self.returning = returning;
+        self.returning = Some(returning);
         self
     }
 
@@ -55,18 +79,20 @@ impl<'a, T> Builder<'a, T> {
     }
 
     pub fn build(self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, self.name)?;
+        write!(f, "{}", self.name.unwrap())?;
 
         if !self.params.is_empty() {
-            let fmt = |(k, v), f| f(&format_args!("{}: {}", k, v));
-            write!(f, "({})", self.params.iter().format_with(", ", fmt))?;
+            let params = self.params.iter().map(|(k, v)| format!("{}: {}", k, v)).join(", ");
+            write!(f, "({params})")?;
         }
 
+        let returning = self.returning.unwrap();
+
         match (self.affected, self.explicit) {
-            (false, false) => write!(f, "{{ {} }}", self.returning),
-            (false, true) => write!(f, "{{ returning {{ {} }}", self.returning),
-            (true, false) => write!(f, "{{ {} affected_rows }}", self.returning),
-            (true, true) => write!(f, "{{ returning {{ {} }} affected_rows }}", self.returning),
+            (false, false) => write!(f, " {{ {} }}", returning),
+            (false, true) => write!(f, " {{ returning {{ {} }}", returning),
+            (true, false) => write!(f, " {{ {} affected_rows }}", returning),
+            (true, true) => write!(f, " {{ returning {{ {} }} affected_rows }}", returning),
         }
     }
 }

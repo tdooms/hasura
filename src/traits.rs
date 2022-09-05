@@ -1,25 +1,21 @@
-use attributes::{Field, Fields};
+use crate::{Field, Fields};
 use serde::de::DeserializeOwned;
 use std::fmt::Display;
 
-pub trait Object {
+pub trait Hasura {
     type Pk: serde::Serialize;
-    fn name<'a>() -> &'a str;
-    fn all<'a>() -> Fields<'a, Self>
-    where
-        Self: Sized;
 
-    fn except<'a>(fields: &[Field<'a, Self>]) -> Fields<'a, Self>
-    where
-        Self: Sized;
+    fn table<'a>() -> &'a str;
+    fn all<'a>() -> Fields<'a, Self> where Self: Sized;
+    fn except<'a>(fields: &[Field<'a, Self>]) -> Fields<'a, Self> where Self: Sized;
 }
 
-pub trait Queryable<P: Object>: Display {
+pub trait Queryable<P: Hasura>: Display {
     type Out: DeserializeOwned;
     fn name() -> String;
 }
 
-pub trait Mutation<P: Object>: Display {
+pub trait Mutation<P: Hasura>: Display {
     type Out: DeserializeOwned;
     fn name() -> String;
 }

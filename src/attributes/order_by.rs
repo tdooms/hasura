@@ -1,15 +1,25 @@
-#[derive(derive_more::Display, Clone)]
-pub enum OrderBy<'a, T: Object> {
-    #[display(fmt = "{}: asc", _0)]
+use std::fmt::{Display, Formatter};
+use crate::{Field, Hasura};
+
+#[derive(Clone)]
+pub enum OrderBy<'a, T: Hasura> {
     Asc(Field<'a, T>),
-    #[display(fmt = "{}: asc_nulls_first", _0)]
     AscNullsFirst(Field<'a, T>),
-    #[display(fmt = "{}: asc_nulls_last", _0)]
     AscNullsLast(Field<'a, T>),
-    #[display(fmt = "{}: desc", _0)]
     Desc(Field<'a, T>),
-    #[display(fmt = "{}: desc_nulls_first", _0)]
     DescNullsFirst(Field<'a, T>),
-    #[display(fmt = "{}: desc_nulls_last", _0)]
     DescNullsLast(Field<'a, T>),
+}
+
+impl<'a, T: Hasura> Display for OrderBy<'a, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OrderBy::Asc(field) => write!(f, "{field}: asc"),
+            OrderBy::AscNullsFirst(field) => write!(f, "{field}: asc_nulls_first"),
+            OrderBy::AscNullsLast(field) => write!(f, "{field}: asc_nulls_last"),
+            OrderBy::Desc(field) => write!(f, "{field}: desc"),
+            OrderBy::DescNullsFirst(field) => write!(f, "{field}: desc_nulls_first"),
+            OrderBy::DescNullsLast(field) => write!(f, "{field}: desc_nulls_last"),
+        }
+    }
 }

@@ -1,4 +1,4 @@
-use crate::request::GraphqlError;
+use crate::fetcher::GraphqlError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

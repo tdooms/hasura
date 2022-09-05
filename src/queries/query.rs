@@ -1,14 +1,9 @@
-use itertools::Itertools;
-
-use crate::builder::{construct_query, Builder};
-use crate::common::{OrderBy, Pk};
-use crate::{serializer, Conditions, Field, Fields, Object, Queryable};
+use crate::{Conditions, Field, Fields, Hasura, Queryable, OrderBy, Builder, Separated};
 use serde::de::DeserializeOwned;
 use std::fmt::Formatter;
-use std::marker::PhantomData;
+use itertools::Itertools;
 
-#[derive(Default)]
-pub struct Query<'a, T: Object> {
+pub struct Query<'a, T: Hasura> {
     pub distinct_on: Option<Field<'a, T>>,
     pub limit: Option<u64>,
     pub offset: Option<u64>,
@@ -17,60 +12,59 @@ pub struct Query<'a, T: Object> {
     pub returning: Fields<'a, T>,
 }
 
-pub struct Builder<'a, T: Object> {
-    pub inner: Query<'a, T>,
-}
-
-impl<'a, T: Object> Query<'a, T> {
-    pub fn builder() -> Builder<Query<'a, T>> {
-        Builder::default()
+impl<'a, T: Hasura> Default for Query<'a, T> {
+    fn default() -> Self {
+        Query {
+            distinct_on: None,
+            limit: None,
+            offset: None,
+            conditions: None,
+            order_by: vec![],
+            returning: T::all(),
+        }
     }
 }
 
-impl<'a, T: Object> Builder<Query<'a, T>> {
+impl<'a, T: Hasura> Query<'a, T> {
     pub fn distinct_on(mut self, distinct_on: Field<'a, T>) -> Self {
-        self.inner.distinct_on = Some(distinct_on);
+        self.distinct_on = Some(distinct_on);
         self
     }
     pub fn limit(mut self, limit: u64) -> Self {
-        self.inner.limit = Some(limit);
+        self.limit = Some(limit);
         self
     }
     pub fn offset(mut self, offset: u64) -> Self {
-        self.inner.offset = Some(offset);
+        self.offset = Some(offset);
         self
     }
     pub fn conditions(mut self, conditions: Conditions<'a, T>) -> Self {
-        self.inner.conditions = Some(conditions);
+        self.conditions = Some(conditions);
         self
     }
     pub fn order_by(mut self, order_by: Vec<OrderBy<'a, T>>) -> Self {
-        self.inner.order_by = order_by;
+        self.order_by = order_by;
         self
     }
     pub fn returning(mut self, returning: Fields<'a, T>) -> Self {
-        self.inner.returning = returning;
+        self.returning = returning;
         self
     }
-    pub fn build(self) -> Query<'a, T> {
-        self.inner
-    }
 }
 
-impl<'a, T: Object + DeserializeOwned> Queryable<T> for Query<'a, T> {
+impl<'a, T: Hasura + DeserializeOwned> Queryable<T> for Query<'a, T> {
     type Out = Vec<T>;
-
     fn name() -> String {
-        T::name().to_string()
+        T::table().to_string()
     }
 }
 
-impl<'a, T: Object + DeserializeOwned> std::fmt::Display for Query<'a, T> {
+impl<'a, T: Hasura + DeserializeOwned> std::fmt::Display for Query<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         Builder::default()
             .name(Self::name())
             .returning(&self.returning)
-            .param("order_by", self.order_by.as_ref())
+            .vector("order_by", &Separated(self.order_by.as_ref()))
             .maybe("distinct_on", self.distinct_on.as_ref())
             .maybe("limit", self.limit.as_ref())
             .maybe("offset", self.offset.as_ref())

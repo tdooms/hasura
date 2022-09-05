@@ -1,26 +1,26 @@
 #[macro_export]
 macro_rules! query {
     ($a:ident) => {
-        hasura::Query1(&$a, std::marker::PhantomData::default()).build()
+        hasura::query2(&$a)
     };
     ($a:ident, $b:ident) => {
-        hasura::Query2(&$a, &$b, std::marker::PhantomData::default()).build()
+        hasura::query2(&$a, &$b)
     };
         ($a:ident, $b:ident, $c:ident) => {
-        hasura::Query3(&$a, &$b, &$c, std::marker::PhantomData::default()).build()
+        hasura::query3(&$a, &$b, &$c)
     };
 }
 
 #[macro_export]
 macro_rules! mutation {
     ($a:ident) => {
-        hasura::Mutation1(&$a, std::marker::PhantomData::default()).build()
+        hasura::mutation1(&$a)
     };
     ($a:ident, $b:ident) => {
-        hasura::Mutation2(&$a, &$b, std::marker::PhantomData::default()).build()
+        hasura::mutation2(&$a, &$b)
     };
     ($a:ident, $b:ident, $c:ident) => {
-        hasura::Mutation3(&$a, &$b, &$c, std::marker::PhantomData::default()).build()
+        hasura::mutation3(&$a, &$b, &$c)
     };
 }
 

@@ -1,6 +1,6 @@
-use crate::{Field, Object};
-use itertools::Itertools;
+use crate::{Field, Hasura};
 use std::fmt::{Display, Formatter};
+use itertools::Itertools;
 
 pub trait Condition: Display {}
 
@@ -27,14 +27,14 @@ impl_cond!(Lt,_lt;u64,i64,f64,String,&'_ str);
 impl_cond!(Ilike,_ilike;String,&'_ str);
 impl_cond!(Like,_like;String,&'_ str);
 
-pub enum Conditions<'a, T: Object> {
+pub enum Conditions<'a, T: Hasura> {
     And(Box<Conditions<'a, T>>, Box<Conditions<'a, T>>),
     Or(Box<Conditions<'a, T>>, Box<Conditions<'a, T>>),
     Not(Box<Conditions<'a, T>>),
     Field(Field<'a, T>, Vec<Box<dyn Condition>>),
 }
 
-impl<'a, T: Object> Conditions<'a, T> {
+impl<'a, T: Hasura> Conditions<'a, T> {
     pub fn and(self, other: Self) -> Self {
         Self::And(Box::new(self), Box::new(other))
     }
@@ -55,13 +55,13 @@ impl<'a, T: Object> Conditions<'a, T> {
     }
 }
 
-impl<'a, T: Object> Display for Conditions<'a, T> {
+impl<'a, T: Hasura> Display for Conditions<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::And(l, r) => write!(f, "_and{{ {}, {} }}", l, r),
             Self::Or(l, r) => write!(f, "_or{{ {}, {} }}", l, r),
             Self::Not(c) => write!(f, "_not{{ {} }}", c),
-            Self::Field(field, cond) => write!(f, "{}: {{ {} }}", field, cond.iter().format(", ")),
+            Self::Field(field, cond) => write!(f, "{}: {{ {} }}", field, cond.iter().join(", ")),
         }
     }
 }
