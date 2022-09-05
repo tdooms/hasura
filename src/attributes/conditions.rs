@@ -28,23 +28,23 @@ impl_cond!(Ilike,_ilike;String,&'_ str);
 impl_cond!(Like,_like;String,&'_ str);
 
 pub enum Conditions<'a, T: Object> {
-    And(Vec<Conditions<'a, T>>),
-    Or(Vec<Conditions<'a, T>>),
-    Not(Vec<Conditions<'a, T>>),
+    And(Box<Conditions<'a, T>>, Box<Conditions<'a, T>>),
+    Or(Box<Conditions<'a, T>>, Box<Conditions<'a, T>>),
+    Not(Box<Conditions<'a, T>>),
     Field(Field<'a, T>, Vec<Box<dyn Condition>>),
 }
 
 impl<'a, T: Object> Conditions<'a, T> {
     pub fn and(self, other: Self) -> Self {
-        Self::And(vec![self, other])
+        Self::And(Box::new(self), Box::new(other))
     }
 
     pub fn or(self, other: Self) -> Self {
-        Self::Or(vec![self, other])
+        Self::Or(Box::new(self), Box::new(other))
     }
 
-    pub fn not(self, other: Self) -> Self {
-        Self::Not(vec![self, other])
+    pub fn not(self) -> Self {
+        Self::Not(Box::new(self))
     }
 
     pub fn single(field: Field<'a, T>, condition: impl Condition + 'static) -> Self {
@@ -58,9 +58,9 @@ impl<'a, T: Object> Conditions<'a, T> {
 impl<'a, T: Object> Display for Conditions<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::And(v) => write!(f, "_and{{ {} }}", v.iter().format(", ")),
-            Self::Or(v) => write!(f, "_or{{ {} }}", v.iter().format(", ")),
-            Self::Not(v) => write!(f, "_not{{ {} }}", v.iter().format(", ")),
+            Self::And(l, r) => write!(f, "_and{{ {}, {} }}", l, r),
+            Self::Or(l, r) => write!(f, "_or{{ {}, {} }}", l, r),
+            Self::Not(c) => write!(f, "_not{{ {} }}", c),
             Self::Field(field, cond) => write!(f, "{}: {{ {} }}", field, cond.iter().format(", ")),
         }
     }

@@ -1,4 +1,5 @@
 use hasura::*;
+use itertools::Either;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -22,50 +23,37 @@ pub struct DraftItem {
     value: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, hasura::Object, hasura::Pk)]
-#[object(name = "items", pk = "value", pk = "c_id")]
+#[derive(Debug, Serialize, Deserialize, Clone, hasura::Object)]
+#[object(table = "items", pk = "name", pk = "category")]
 pub struct Item {
-    s_id: u64,
-    value: String,
+    name: String,
+    category: String,
+    price: u64,
 }
 
-fn skip_empty(x: &Data<Vec<DraftItem>>) -> bool {
-    x.data.is_empty()
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Serialize, Deserialize, Clone, hasura::Object)]
+#[hasura(table = "managers", pk = "name")]
 pub struct Manager {
     name: String,
-    size: u64,
+    weight: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct DraftStore {
-    #[serde(skip_serializing_if = "skip_empty")]
-    items: Data<Vec<DraftItem>>,
-
-    #[serde(flatten)]
-    manager: Manager,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, hasura::Object, hasura::Pk)]
-#[object(name = "stores", pk = "s_id", draft = "DraftStore")]
+#[derive(Debug, Serialize, Deserialize, Clone, hasura::Object)]
+#[hasura(table = "stores", pk = "s_id")]
 pub struct Store {
-    s_id: u64,
-    #[object(expand)]
-    items: Vec<Item>,
+    s_id: Option<u64>,
 
-    #[serde(flatten)]
-    manager: Manager,
+    #[hasura(relation)]
+    items: Either<Vec<Item>, u64>,
+
+    #[hasura(relation)]
+    manager: Either<Option<Manager>, String>,
 }
 
 #[cfg(test)]
 #[test]
 fn simple_query() -> Result<()> {
-    let customers = QueryBuilder::default()
-        .returning(Customer::all())
-        .build()
-        .unwrap();
+    let customers: Query<Store> = QueryBuilder::default().build().unwrap();
 
     assert_eq!(
         customers.to_string(),

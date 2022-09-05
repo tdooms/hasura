@@ -1,20 +1,11 @@
 use crate::error::{Error, Result};
+use crate::traits::Mutation;
 use crate::Object;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fmt::{Debug, Display, Formatter};
 use std::marker::PhantomData;
-
-pub trait Queryable<P: Object>: Display {
-    type Out: DeserializeOwned;
-    fn name() -> String;
-}
-
-pub trait Mutation<P: Object>: Display {
-    type Out: DeserializeOwned;
-    fn name() -> String;
-}
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Default)]
 pub struct Data<T: Serialize> {
@@ -102,9 +93,9 @@ impl<'a, P1: Object, P2: Object, T1: Queryable<P1>, T2: Queryable<P2>> Query2<'a
 #[display(fmt = "query {{ {} {} }}", _0, _1)]
 pub struct Query3<
     'a,
-    P1: Object,
-    P2: Object,
-    P3: Object,
+    P1: Hasura,
+    P2: Hasura,
+    P3: Hasura,
     T1: Queryable<P1>,
     T2: Queryable<P2>,
     T3: Queryable<P3>,
@@ -117,9 +108,9 @@ pub struct Query3<
 
 impl<
         'a,
-        P1: Object,
-        P2: Object,
-        P3: Object,
+        P1: Hasura,
+        P2: Hasura,
+        P3: Hasura,
         T1: Queryable<P1>,
         T2: Queryable<P2>,
         T3: Queryable<P3>,
@@ -139,9 +130,9 @@ impl<
 
 #[derive(derive_more::Display)]
 #[display(fmt = "mutation {{ {} }}", _0)]
-pub struct Mutation1<'a, P1: Object, T1: Mutation<P1>>(pub &'a T1, pub PhantomData<P1>);
+pub struct Mutation1<'a, P1: Hasura, T1: Mutation<P1>>(pub &'a T1, pub PhantomData<P1>);
 
-impl<'a, P1: Object, T1: Mutation<P1>> Mutation1<'a, P1, T1> {
+impl<'a, P1: Hasura, T1: Mutation<P1>> Mutation1<'a, P1, T1> {
     pub fn build(self) -> Fetch<T1::Out> {
         Fetch::new(self, |val| dec_mut::<_, T1>(&val))
     }
@@ -149,13 +140,13 @@ impl<'a, P1: Object, T1: Mutation<P1>> Mutation1<'a, P1, T1> {
 
 #[derive(derive_more::Display)]
 #[display(fmt = "mutation {{ {} {} }}", _0, _1)]
-pub struct Mutation2<'a, P1: Object, P2: Object, T1: Mutation<P1>, T2: Mutation<P2>>(
+pub struct Mutation2<'a, P1: Hasura, P2: Hasura, T1: Mutation<P1>, T2: Mutation<P2>>(
     pub &'a T1,
     pub &'a T2,
     pub PhantomData<(P1, P2)>,
 );
 
-impl<'a, P1: Object, P2: Object, T1: Mutation<P1>, T2: Mutation<P2>> Mutation2<'a, P1, P2, T1, T2> {
+impl<'a, P1: Hasura, P2: Hasura, T1: Mutation<P1>, T2: Mutation<P2>> Mutation2<'a, P1, P2, T1, T2> {
     pub fn build(self) -> Fetch<(T1::Out, T2::Out)> {
         let func = |val| Ok((dec_mut::<_, T1>(&val)?, dec_mut::<_, T2>(&val)?));
         Fetch::new(self, func)
@@ -166,9 +157,9 @@ impl<'a, P1: Object, P2: Object, T1: Mutation<P1>, T2: Mutation<P2>> Mutation2<'
 #[display(fmt = "mutation {{ {} {} {} }}", _0, _1, _2)]
 pub struct Mutation3<
     'a,
-    P1: Object,
-    P2: Object,
-    P3: Object,
+    P1: Hasura,
+    P2: Hasura,
+    P3: Hasura,
     T1: Mutation<P1>,
     T2: Mutation<P2>,
     T3: Mutation<P3>,
@@ -181,9 +172,9 @@ pub struct Mutation3<
 
 impl<
         'a,
-        P1: Object,
-        P2: Object,
-        P3: Object,
+        P1: Hasura,
+        P2: Hasura,
+        P3: Hasura,
         T1: Mutation<P1>,
         T2: Mutation<P2>,
         T3: Mutation<P3>,

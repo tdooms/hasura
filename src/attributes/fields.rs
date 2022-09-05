@@ -1,23 +1,3 @@
-use itertools::Itertools;
-use std::fmt::{Display, Formatter};
-use std::marker::PhantomData;
-
-pub trait Pk {
-    type Pk: serde::Serialize;
-}
-
-pub trait Object {
-    type Draft: serde::Serialize;
-    fn name<'a>() -> &'a str;
-    fn all<'a>() -> Fields<'a, Self>
-    where
-        Self: Sized;
-
-    fn except<'a>(fields: &[Field<'a, Self>]) -> Fields<'a, Self>
-    where
-        Self: Sized;
-}
-
 #[derive(Clone)]
 pub struct Field<'a, T: Object + ?Sized> {
     pub name: &'a str,
@@ -72,24 +52,4 @@ impl<'a, T: Object> Default for Fields<'a, T> {
     fn default() -> Self {
         T::all()
     }
-}
-
-#[derive(derive_more::Display, Clone)]
-pub enum OrderBy<'a, T: Object> {
-    #[display(fmt = "{}: asc", _0)]
-    Asc(Field<'a, T>),
-    #[display(fmt = "{}: asc_nulls_first", _0)]
-    AscNullsFirst(Field<'a, T>),
-    #[display(fmt = "{}: asc_nulls_last", _0)]
-    AscNullsLast(Field<'a, T>),
-    #[display(fmt = "{}: desc", _0)]
-    Desc(Field<'a, T>),
-    #[display(fmt = "{}: desc_nulls_first", _0)]
-    DescNullsFirst(Field<'a, T>),
-    #[display(fmt = "{}: desc_nulls_last", _0)]
-    DescNullsLast(Field<'a, T>),
-}
-
-pub struct OnConflict {
-    // TODO: implement
 }
