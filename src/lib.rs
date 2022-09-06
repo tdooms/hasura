@@ -10,6 +10,33 @@ pub(crate) use builder::{Builder, Separated, Braced};
 
 pub use derive::Hasura;
 
+pub mod relation {
+    use serde::de::{Deserialize, Deserializer};
+    use serde::ser::{Serialize, SerializeStruct, Serializer};
+
+    pub fn serialize<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            T: Serialize,
+            S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("data", 1)?;
+        state.serialize_field("data", value)?;
+        state.end()
+    }
+
+    pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+        where
+            T: Deserialize<'de>,
+            D: Deserializer<'de>,
+    {
+        #[derive(serde::Deserialize)]
+        struct Wrapper<T> {
+            data: T,
+        }
+        Wrapper::<T>::deserialize(deserializer).map(|wrapper| wrapper.data)
+    }
+}
+
 mod attributes;
 mod segments;
 mod builder;

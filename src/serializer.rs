@@ -529,6 +529,21 @@ impl<'a> ser::SerializeStruct for &'a mut Serializer {
             self.output += ",";
         }
 
+        // Change: check whether it will serialize to null and skip it if so
+        let mut temp = Serializer {
+            output: String::new(),
+            skip_quotes: true,
+        };
+        value.serialize(&mut temp)?;
+
+        if temp.output == "null" {
+            return Ok(());
+        }
+        if temp.output == "{}" {
+            self.output.pop();
+            return Ok(());
+        }
+
         // CHANGES MADE: no quotes around key
         self.output += key;
         self.output += ":";
@@ -554,6 +569,7 @@ impl<'a> ser::SerializeStructVariant for &'a mut Serializer {
         if !self.output.ends_with('{') {
             self.output += ",";
         }
+
         key.serialize(&mut **self)?;
         self.output += ":";
         value.serialize(&mut **self)

@@ -1,7 +1,6 @@
 use crate::{Conditions, Field, Fields, Hasura, Queryable, OrderBy, Builder, Separated};
 use serde::de::DeserializeOwned;
 use std::fmt::Formatter;
-use itertools::Itertools;
 
 pub struct Query<'a, T: Hasura> {
     pub distinct_on: Option<Field<'a, T>>,
@@ -61,15 +60,13 @@ impl<'a, T: Hasura + DeserializeOwned> Queryable<T> for Query<'a, T> {
 
 impl<'a, T: Hasura + DeserializeOwned> std::fmt::Display for Query<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        Builder::default()
-            .name(Self::name())
-            .returning(&self.returning)
+        Builder::new(Self::name(), &self.returning)
             .vector("order_by", &Separated(self.order_by.as_ref()))
             .maybe("distinct_on", self.distinct_on.as_ref())
             .maybe("limit", self.limit.as_ref())
             .maybe("offset", self.offset.as_ref())
             .maybe("where", self.conditions.as_ref())
-            .build(f)
+            .write(f)
     }
 }
 
