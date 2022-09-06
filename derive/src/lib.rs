@@ -7,13 +7,13 @@ use syn::parse_macro_input;
 #[darling(attributes(hasura))]
 struct FieldOpts {
     ident: Option<syn::Ident>,
-    ty: syn::Type,
+    // ty: syn::Type,
 
     #[darling(default)]
     relation: Option<String>,
 
     #[darling(default)]
-    pk: bool,
+    pk: Option<String>,
 }
 
 #[derive(FromDeriveInput)]
@@ -31,18 +31,22 @@ impl ToTokens for TraitOpts {
             _ => unimplemented!(),
         };
 
-        let pks = fields
+        let pks: Vec<_> = fields
             .iter()
-            .filter(|f| f.pk)
-            .map(|FieldOpts { ident, ty, .. }| quote!(pub #ident: #ty));
+            .filter_map(|f| Some((&f.ident, syn::Ident::new(f.pk.as_ref()?, self.ident.span()))))
+            .collect();
+
+
+        let pk_fields = pks.iter().map(|(ident, pk)| quote!(pub #ident: #pk));
+        let pk_params = pks.iter().map(|(ident, pk)| quote!(#ident: impl std::convert::Into<#pk>));
+        let pk_intos = pks.iter().map(|(ident, _)| quote!(#ident: #ident.into()));
+
         let pk_ident = syn::Ident::new(&format!("{}Pk", self.ident), self.ident.span());
 
-        let field_extractor = |&FieldOpts {
-                                   ref ident,
-                                   ref relation,
-                                   ..
-                               }| {
-            match relation {
+        let field_extractor = |field: &FieldOpts| {
+            let ident = &field.ident;
+
+            match field.relation {
                 Some(_) => quote! {
                     pub fn #ident<'a, S: hasura::Hasura>(inner: hasura::Fields<'a, S>) -> hasura::Field<'a, Self> {
                         hasura::Field::recursive(stringify!(#ident), inner)
@@ -76,7 +80,7 @@ impl ToTokens for TraitOpts {
         let stream = quote! {
             #[derive(serde::Serialize)]
             pub struct #pk_ident {
-                #(#pks),*
+                #(#pk_fields),*
             }
             impl hasura::Hasura for #ident {
                 type Pk = #pk_ident;
@@ -96,6 +100,12 @@ impl ToTokens for TraitOpts {
 
             impl #ident {
                 #(#field_extractors)*
+
+                pub fn pk(#(#pk_params),*) -> #pk_ident {
+                    #pk_ident {
+                        #(#pk_intos),*
+                    }
+                }
             }
         };
         tokens.extend(stream);

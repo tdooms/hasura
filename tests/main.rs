@@ -5,10 +5,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Clone, Hasura)]
 #[hasura(table = "articles")]
 pub struct Article {
-    #[hasura(pk)]
+    #[hasura(pk = "String")]
     name: String,
 
-    #[hasura(pk)]
+    #[hasura(pk = "String")]
     category: String,
 
     price: u64,
@@ -17,7 +17,7 @@ pub struct Article {
 #[derive(Debug, Serialize, Deserialize, Clone, Hasura)]
 #[hasura(table = "managers")]
 pub struct Manager {
-    #[hasura(pk)]
+    #[hasura(pk = "String")]
     name: String,
 
     weight: f64,
@@ -26,7 +26,7 @@ pub struct Manager {
 #[derive(Debug, Serialize, Deserialize, Clone, Hasura)]
 #[hasura(table = "stores")]
 pub struct Store {
-    #[hasura(pk)]
+    #[hasura(pk = "u64")]
     id: Option<u64>,
 
     manager_id: Option<String>,
@@ -143,7 +143,8 @@ fn update_by_pk() {
         price: 7,
     };
 
-    let pk = ArticlePk { name: "apple".to_string(), category: "fruits".to_string() };
+    let _pk = ArticlePk { name: "apple".to_string(), category: "fruits".to_string() };
+    let pk = Article::pk("apple", "fruits");
     let updated = UpdateByPk::new(pk, article);
 
     assert_eq!(
