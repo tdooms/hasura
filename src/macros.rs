@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! query {
     ($a:ident) => {
-        hasura::query2(&$a)
+        hasura::query1(&$a)
     };
     ($a:ident, $b:ident) => {
         hasura::query2(&$a, &$b)
