@@ -1,10 +1,6 @@
-use hasura::delete::Delete;
-use hasura::insert::Insert;
-use hasura::insert_one::InsertOne;
-use hasura::query::Query;
 use hasura::*;
 use serde::{Deserialize, Serialize};
-use hasura::update_by_pk::UpdateByPk;
+
 
 #[derive(Debug, Serialize, Deserialize, Clone, Hasura)]
 #[hasura(table = "articles")]
