@@ -1,12 +1,13 @@
+use hasura::delete::Delete;
 use hasura::insert::Insert;
 use hasura::insert_one::InsertOne;
 use hasura::query::Query;
 use hasura::*;
-use itertools::Either;
 use serde::{Deserialize, Serialize};
+use hasura::update_by_pk::UpdateByPk;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Hasura)]
-#[hasura(table = "items")]
+#[hasura(table = "articles")]
 pub struct Article {
     #[hasura(pk)]
     name: String,
@@ -36,7 +37,7 @@ pub struct Store {
 
     #[hasura(relation = "Article")]
     #[serde(with = "relation")]
-    items: Vec<Article>,
+    articles: Vec<Article>,
 
     #[hasura(relation = "Manager")]
     #[serde(with = "relation")]
@@ -46,7 +47,7 @@ pub struct Store {
 #[cfg(test)]
 #[test]
 fn simple_query() {
-    let managers: Query<Manager> = Query::default();
+    let managers: Query<Manager> = Query::new();
 
     assert_eq!(managers.to_string(), "managers { name weight }");
 }
@@ -54,7 +55,7 @@ fn simple_query() {
 #[cfg(test)]
 #[test]
 fn complex_query() {
-    let managers: Query<Manager> = Query::default()
+    let managers: Query<Manager> = Query::new()
         .distinct_on(Manager::name())
         .offset(10u64)
         .limit(10u64);
@@ -98,124 +99,69 @@ fn complex_insert() {
     let store0 = Store {
         id: None,
         manager_id: None,
-        items: vec![article1],
+        articles: vec![article1],
         manager: None,
     };
     let store1 = Store {
         id: None,
         manager_id: None,
-        items: vec![article0],
+        articles: vec![article0],
         manager: None,
     };
 
     let insert = Insert::new(vec![store0, store1]);
 
-    assert_eq!(insert.to_string(), "insert_stores(objects: [{items:{data:[{name:\"1\",category:\"1\",price:\"1\"}]}}, {items:{data:[{name:\"0\",category:\"0\",price:\"0\"}]}}]) { returning { id manager_id items { name category price } manager { name weight } }")
+    assert_eq!(insert.to_string(), "insert_stores(objects: [{articles:{data:[{name:\"1\",category:\"1\",price:\"1\"}]}}, {articles:{data:[{name:\"0\",category:\"0\",price:\"0\"}]}}]) { returning { id manager_id articles { name category price } manager { name weight } } }")
 }
 
-// #[cfg(test)]
-// #[test]
-// fn delete() -> Result<()> {
-//     let conditions = Conditions::single(Customer::name(), Eq("John"));
-//
-//     let customers = DeleteBuilder::default()
-//         .conditions(vec![conditions])
-//         .returning(Customer::all())
-//         .build()
-//         .unwrap();
-//
-//     assert_eq!(
-//         customers.to_string(),
-//         "delete_customers(where: { name: { _eq : \"John\" } }) { returning { c_id member name email } }"
-//     );
-//
-//     Ok(())
-// }
-//
-// #[cfg(test)]
-// #[test]
-// fn conditions() -> Result<()> {
-//     let conditions = Conditions::single(Customer::name(), Ilike("%J%"));
-//
-//     let customers = DeleteBuilder::default()
-//         .conditions(vec![conditions])
-//         .returning(Customer::all())
-//         .build()
-//         .unwrap();
-//
-//     assert_eq!(
-//         customers.to_string(),
-//         "delete_customers(where: { name: { _ilike : \"%J%\" } }) { returning { c_id member name email } }"
-//     );
-//
-//     Ok(())
-// }
-//
-// #[cfg(test)]
-// #[test]
-// fn update_by_pk() -> Result<()> {
-//     let customer = DraftCustomer {
-//         member: false,
-//         name: "Bert".to_string(),
-//         email: None,
-//     };
-//     let updated = UpdateByPkBuilder::default()
-//         .pk(CustomerPk { c_id: 116 })
-//         .set(customer)
-//         .returning(Customer::all())
-//         .build()
-//         .unwrap();
-//
-//     assert_eq!(
-//         updated.to_string(),
-//         "update_customers_by_pk(_set: {member:false,name:\"Bert\",email:null}, pk_columns: {c_id:\"116\"}) { c_id member name email }"
-//     );
-//
-//     Ok(())
-// }
-//
-// #[cfg(test)]
-// #[test]
-// fn recursive_insert() -> Result<()> {
-//     let item0 = DraftItem {
-//         value: "x".to_string(),
-//     };
-//     let item1 = DraftItem {
-//         value: "y".to_string(),
-//     };
-//
-//     let store = DraftStore {
-//         items: Data {
-//             data: vec![item0, item1],
-//         },
-//         manager: Manager::default(),
-//     };
-//
-//     let inserted = InsertOneBuilder::default()
-//         .object(store)
-//         .returning(Store::all())
-//         .build()
-//         .unwrap();
-//
-//     assert_eq!(
-//         inserted.to_string(),
-//         "insert_stores_one(object: {items:{data:[{value:\"x\"},{value:\"y\"}]},name:\"\",size:\"0\"}) { s_id items { s_id value } manager }"
-//     );
-//
-//     Ok(())
-// }
-//
-// #[cfg(test)]
-// #[test]
-// fn recursive_except() -> Result<()> {
-//     let returning = Store::except(&[Store::items(Item::all())]);
-//     let query = QueryBuilder::default()
-//         .returning(returning)
-//         .build()
-//         .unwrap();
-//
-//     assert_eq!(query.to_string(), "stores { s_id manager }");
-//
-//     Ok(())
-// }
-//
+#[cfg(test)]
+#[test]
+fn simple_delete() {
+    let conditions = Conditions::single(Article::name(), Eq("apple"));
+    let articles = Delete::new().conditions(conditions);
+
+    assert_eq!(
+        articles.to_string(),
+        "delete_articles(where: { name: { _eq : \"apple\" } }) { returning { name category price } }"
+    )
+}
+
+#[cfg(test)]
+#[test]
+fn conditions() {
+    let conditions = Conditions::single(Manager::name(), Ilike("%J%"));
+    let managers = Delete::new().conditions(conditions);
+
+    assert_eq!(
+        managers.to_string(),
+        "delete_managers(where: { name: { _ilike : \"%J%\" } }) { returning { name weight } }"
+    )
+}
+
+#[cfg(test)]
+#[test]
+fn update_by_pk() {
+    let article = Article {
+        name: "apple".to_string(),
+        category: "fruits".to_string(),
+        price: 7,
+    };
+
+    let pk = ArticlePk { name: "apple".to_string(), category: "fruits".to_string() };
+    let updated = UpdateByPk::new(pk, article);
+
+    assert_eq!(
+        updated.to_string(),
+        "update_articles_by_pk(pk_columns: {name:\"apple\",category:\"fruits\"}, _set: {name:\"apple\",category:\"fruits\",price:\"7\"}) { name category price }"
+    );
+}
+
+#[cfg(test)]
+#[test]
+fn recursive_except() {
+    let returning = Store::except(&[Store::articles(Article::all())]);
+    let query = Query::new().returning(returning);
+
+    assert_eq!(query.to_string(), "stores { id manager_id manager { name weight } }");
+}
+

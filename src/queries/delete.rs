@@ -1,65 +1,47 @@
-// use crate::constructor::construct_query;
-// use crate::{serializer, Conditions, Fields, Mutation, Object, Pk};
-//
-// use itertools::Itertools;
-// use serde::de::DeserializeOwned;
-// use std::fmt::Formatter;
-// use std::marker::PhantomData;
-//
-// #[derive(derive_builder::Builder)]
-// #[builder(pattern = "owned")]
-// pub struct Delete<'a, T: Object> {
-//     #[builder(default)]
-//     conditions: Vec<Conditions<'a, T>>,
-//     #[builder(default)]
-//     affected_rows: bool,
-//     #[builder(default)]
-//     pub returning: Fields<'a, T>,
-//     #[builder(default)]
-//     phantom: PhantomData<T>,
-// }
-//
-// impl<'a, T: Object + DeserializeOwned> Mutation<T> for Delete<'a, T> {
-//     type Out = Vec<T>;
-//
-//     fn name() -> String {
-//         format!("delete_{}", T::name())
-//     }
-// }
-//
-// impl<'a, T: Object + DeserializeOwned> std::fmt::Display for Delete<'a, T> {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-//         let conditions = format!("{{ {} }}", self.conditions.iter().format(", "));
-//         let name = Self::name();
-//         let params = [(Some("where"), conditions)];
-//
-//         construct_query(f, &name, &params, &self.returning, self.affected_rows, true)
-//     }
-// }
-//
-// #[derive(derive_builder::Builder)]
-// #[builder(pattern = "owned")]
-// pub struct DeleteByPk<'a, T: Object + Pk> {
-//     pk: T::Pk,
-//     #[builder(default)]
-//     pub returning: Fields<'a, T>,
-//     #[builder(default)]
-//     phantom: PhantomData<T>,
-// }
-//
-// impl<'a, T: Object + DeserializeOwned + Pk> Mutation<T> for DeleteByPk<'a, T> {
-//     type Out = Option<T>;
-//
-//     fn name() -> String {
-//         format!("delete_{}_by_pk", T::name())
-//     }
-// }
-//
-// impl<'a, T: Object + Pk + DeserializeOwned> std::fmt::Display for DeleteByPk<'a, T> {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-//         let name = Self::name();
-//         let params = [(None, serializer::to_string(&self.pk, false).unwrap())];
-//
-//         construct_query(f, &name, &params, &self.returning, false, false)
-//     }
-// }
+use crate::{Braced, Builder, Conditions, Fields, Hasura, Mutation};
+use serde::de::DeserializeOwned;
+use std::fmt::{Display, Formatter};
+
+pub struct Delete<'a, T: Hasura> {
+    pub conditions: Conditions<'a, T>,
+    pub affected_rows: bool,
+    pub returning: Fields<'a, T>,
+}
+
+impl<'a, T: Hasura> Delete<'a, T> {
+    pub fn new() -> Self {
+        Self {
+            conditions: Conditions::None,
+            affected_rows: false,
+            returning: T::all(),
+        }
+    }
+    pub fn conditions(mut self, conditions: Conditions<'a, T>) -> Self {
+        self.conditions = conditions;
+        self
+    }
+    pub fn affected_rows(mut self, affected_rows: bool) -> Self {
+        self.affected_rows = affected_rows;
+        self
+    }
+    pub fn returning(mut self, returning: Fields<'a, T>) -> Self {
+        self.returning = returning;
+        self
+    }
+}
+
+impl<'a, T: Hasura + DeserializeOwned> Mutation<T> for Delete<'a, T> {
+    type Out = Vec<T>;
+    fn name() -> String {
+        format!("delete_{}", T::table())
+    }
+}
+
+impl<'a, T: Hasura + DeserializeOwned> Display for Delete<'a, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Builder::new(Self::name(), &self.returning)
+            .param("where", &Braced(&self.conditions))
+            .explicit(true)
+            .write(f)
+    }
+}

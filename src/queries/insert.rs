@@ -2,7 +2,7 @@ use std::fmt::Formatter;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use crate::{Builder, Fields, Hasura, Mutation, OnConflict};
-use crate::builder::Separalized;
+use crate::Separalized;
 
 pub struct Insert<'a, T: Hasura> {
     pub objects: Vec<T>,
@@ -42,8 +42,8 @@ impl<'a, T: Hasura + DeserializeOwned + Serialize> Mutation<T> for Insert<'a, T>
 impl<'a, T: Hasura + DeserializeOwned + Serialize> std::fmt::Display for Insert<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         Builder::new(Self::name(), &self.returning)
-            .vector("objects", &Separalized(self.objects.as_ref()))
-            .maybe("on_conflict", self.on_conflict.as_ref())
+            .maybe("objects", &Separalized(self.objects.as_ref()))
+            .maybe("on_conflict", &self.on_conflict)
             .affected(self.affected_rows)
             .explicit(true)
             .write(f)

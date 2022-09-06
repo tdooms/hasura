@@ -11,7 +11,7 @@ macro_rules! impl_cond {
 
         impl<T: serde::Serialize> std::fmt::Display for $t<T> {
             fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(f, stringify!($n:{}), crate::serializer::to_string(&self.0, true).unwrap())
+                write!(f, stringify!($n:{}), crate::to_string(&self.0, true).unwrap())
             }
         }
 
@@ -32,6 +32,7 @@ pub enum Conditions<'a, T: Hasura> {
     Or(Box<Conditions<'a, T>>, Box<Conditions<'a, T>>),
     Not(Box<Conditions<'a, T>>),
     Field(Field<'a, T>, Vec<Box<dyn Condition>>),
+    None
 }
 
 impl<'a, T: Hasura> Conditions<'a, T> {
@@ -62,6 +63,7 @@ impl<'a, T: Hasura> Display for Conditions<'a, T> {
             Self::Or(l, r) => write!(f, "_or{{ {}, {} }}", l, r),
             Self::Not(c) => write!(f, "_not{{ {} }}", c),
             Self::Field(field, cond) => write!(f, "{}: {{ {} }}", field, cond.iter().join(", ")),
+            Self::None => write!(f, "")
         }
     }
 }

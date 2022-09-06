@@ -2,7 +2,7 @@ use std::fmt::Formatter;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use crate::{Builder, Fields, Hasura, Mutation, OnConflict};
-use crate::builder::Serialized;
+use crate::Serialized;
 
 pub struct InsertOne<'a, T: Hasura> {
     pub object: T,
@@ -37,7 +37,7 @@ impl<'a, T: Hasura + DeserializeOwned + Serialize> std::fmt::Display for InsertO
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         Builder::new(Self::name(), &self.returning)
             .param("object", &Serialized(&self.object))
-            .maybe("on_conflict", self.on_conflict.as_ref())
+            .maybe("on_conflict", &self.on_conflict)
             .write(f)
     }
 }

@@ -11,9 +11,9 @@ pub struct Query<'a, T: Hasura> {
     pub returning: Fields<'a, T>,
 }
 
-impl<'a, T: Hasura> Default for Query<'a, T> {
-    fn default() -> Self {
-        Query {
+impl<'a, T: Hasura> Query<'a, T> {
+    pub fn new() -> Self {
+        Self {
             distinct_on: None,
             limit: None,
             offset: None,
@@ -22,9 +22,7 @@ impl<'a, T: Hasura> Default for Query<'a, T> {
             returning: T::all(),
         }
     }
-}
 
-impl<'a, T: Hasura> Query<'a, T> {
     pub fn distinct_on(mut self, distinct_on: Field<'a, T>) -> Self {
         self.distinct_on = Some(distinct_on);
         self
@@ -61,11 +59,11 @@ impl<'a, T: Hasura + DeserializeOwned> Queryable<T> for Query<'a, T> {
 impl<'a, T: Hasura + DeserializeOwned> std::fmt::Display for Query<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         Builder::new(Self::name(), &self.returning)
-            .vector("order_by", &Separated(self.order_by.as_ref()))
-            .maybe("distinct_on", self.distinct_on.as_ref())
-            .maybe("limit", self.limit.as_ref())
-            .maybe("offset", self.offset.as_ref())
-            .maybe("where", self.conditions.as_ref())
+            .maybe("order_by", &Separated(self.order_by.as_ref()))
+            .maybe("distinct_on", &self.distinct_on)
+            .maybe("limit", &self.limit)
+            .maybe("offset", &self.offset)
+            .maybe("where", &self.conditions)
             .write(f)
     }
 }
@@ -73,28 +71,4 @@ impl<'a, T: Hasura + DeserializeOwned> std::fmt::Display for Query<'a, T> {
 // TODO: understand this
 // pub struct QueryAggregate {
 //
-// }
-
-// #[derive(derive_builder::Builder)]
-// #[builder(pattern = "owned")]
-// pub struct QueryByPk<'a, T: Object + Pk> {
-//     pk: T::Pk,
-//     #[builder(default)]
-//     pub returning: Fields<'a, T>,
-// }
-//
-// impl<'a, T: Object + DeserializeOwned + Pk> Queryable<T> for QueryByPk<'a, T> {
-//     type Out = Option<T>;
-//
-//     fn name() -> String {
-//         format!("{}_by_pk", T::name())
-//     }
-// }
-//
-// impl<T: Object + Pk + DeserializeOwned> std::fmt::Display for QueryByPk<'_, T> {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         let params = [(None, serializer::to_string(&self.pk, false).unwrap())];
-//         let name = Self::name();
-//         construct_query(f, &name, &params, &self.returning, false, false)
-//     }
 // }

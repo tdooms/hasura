@@ -6,7 +6,8 @@ pub use error::*;
 pub use fetcher::Fetcher;
 pub use traits::Hasura;
 pub(crate) use traits::{Queryable, Mutation};
-pub(crate) use builder::{Builder, Separated, Braced};
+pub(crate) use utils::builder::*;
+pub(crate) use utils::serializer::to_string;
 
 pub use derive::Hasura;
 
@@ -39,11 +40,9 @@ pub mod relation {
 
 mod attributes;
 mod segments;
-mod builder;
 mod error;
 mod fetcher;
 mod macros;
-mod serializer;
 mod traits;
 mod queries;
-
+mod utils;
