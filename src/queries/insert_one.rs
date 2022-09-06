@@ -29,7 +29,7 @@ impl<'a, T: Hasura> InsertOne<'a, T> {
 }
 
 impl<'a, T: Hasura + DeserializeOwned + Serialize> Mutation<T> for InsertOne<'a, T> {
-    type Out = Vec<T>;
+    type Out = Option<T>;
     fn name() -> String { format!("insert_{}_one", T::table()) }
 }
 

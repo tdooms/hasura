@@ -23,7 +23,7 @@ impl<'a, T: Hasura> DeleteByPk<'a, T> {
 }
 
 impl<'a, T: Hasura + DeserializeOwned> Mutation<T> for DeleteByPk<'a, T> {
-    type Out = Vec<T>;
+    type Out = Option<T>;
     fn name() -> String {
         format!("delete_{}_by_pk", T::table())
     }

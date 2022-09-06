@@ -21,7 +21,7 @@ impl<'a, T: Hasura> QueryByPk<'a, T> {
 }
 
 impl<'a, T: Hasura + DeserializeOwned> Queryable<T> for QueryByPk<'a, T> {
-    type Out = Vec<T>;
+    type Out = Option<T>;
     fn name() -> String {
         format!("{}_by_pk", T::table())
     }

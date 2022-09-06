@@ -25,7 +25,7 @@ impl<'a, T: Hasura> UpdateByPk<'a, T> {
 }
 
 impl<'a, T: Hasura + Serialize + DeserializeOwned> Mutation<T> for UpdateByPk<'a, T> {
-    type Out = Vec<T>;
+    type Out = Option<T>;
     fn name() -> String {
         format!("update_{}_by_pk", T::table())
     }
