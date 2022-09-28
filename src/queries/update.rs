@@ -4,14 +4,14 @@ use std::fmt::{Display, Formatter};
 use serde::Serialize;
 
 pub struct Update<'a, T: Hasura> {
-    pub set: T,
+    pub set: &'a T,
     pub conditions: Conditions<'a, T>,
     pub affected_rows: bool,
     pub returning: Fields<'a, T>,
 }
 
 impl<'a, T: Hasura + Serialize> Update<'a, T> {
-    pub fn new(set: T) -> Self {
+    pub fn new(set: &'a T) -> Self {
         Self {
             set,
             conditions: Conditions::None,

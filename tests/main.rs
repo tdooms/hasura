@@ -70,7 +70,7 @@ fn simple_insert() {
         weight: 10.0,
     };
 
-    let insert = InsertOne::new(manager);
+    let insert = InsertOne::new(&manager);
 
     assert_eq!(
         insert.to_string(),
@@ -105,7 +105,7 @@ fn complex_insert() {
         manager: None,
     };
 
-    let insert = Insert::new(vec![store0, store1]);
+    let insert = Insert::new(vec![&store0, &store1]);
 
     assert_eq!(insert.to_string(), "insert_stores(objects: [{articles:{data:[{name:\"1\",category:\"1\",price:\"1\"}]}}, {articles:{data:[{name:\"0\",category:\"0\",price:\"0\"}]}}]) { returning { id manager_id articles { name category price } manager { name weight } } }")
 }
@@ -145,7 +145,7 @@ fn update_by_pk() {
 
     let _pk = ArticlePk { name: "apple".to_string(), category: "fruits".to_string() };
     let pk = Article::pk("apple", "fruits");
-    let updated = UpdateByPk::new(pk, article);
+    let updated = UpdateByPk::new(pk, &article);
 
     assert_eq!(
         updated.to_string(),

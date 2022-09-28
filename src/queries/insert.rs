@@ -5,14 +5,14 @@ use crate::{Builder, Fields, Hasura, Mutation, OnConflict};
 use crate::Separalized;
 
 pub struct Insert<'a, T: Hasura> {
-    pub objects: Vec<T>,
+    pub objects: Vec<&'a T>,
     pub affected_rows: bool,
     pub on_conflict: Option<OnConflict>,
     pub returning: Fields<'a, T>,
 }
 
 impl<'a, T: Hasura> Insert<'a, T> {
-    pub fn new(objects: Vec<T>) -> Self {
+    pub fn new(objects: Vec<&'a T>) -> Self {
         Insert {
             objects,
             affected_rows: false,

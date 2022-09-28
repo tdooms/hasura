@@ -5,13 +5,13 @@ use crate::{Builder, Fields, Hasura, Mutation, OnConflict};
 use crate::Serialized;
 
 pub struct InsertOne<'a, T: Hasura> {
-    pub object: T,
+    pub object: &'a T,
     pub on_conflict: Option<OnConflict>,
     pub returning: Fields<'a, T>,
 }
 
 impl<'a, T: Hasura> InsertOne<'a, T> {
-    pub fn new(object: T) -> Self {
+    pub fn new(object: &'a T) -> Self {
         InsertOne {
             object,
             on_conflict: None,

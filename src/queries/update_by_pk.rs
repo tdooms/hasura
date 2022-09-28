@@ -6,12 +6,12 @@ use crate::Serialized;
 
 pub struct UpdateByPk<'a, T: Hasura> {
     pub pk: T::Pk,
-    pub set: T,
+    pub set: &'a T,
     pub returning: Fields<'a, T>,
 }
 
 impl<'a, T: Hasura> UpdateByPk<'a, T> {
-    pub fn new(pk: T::Pk, set: T) -> Self {
+    pub fn new(pk: T::Pk, set: &'a T) -> Self {
         Self {
             pk,
             set,
