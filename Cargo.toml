@@ -12,6 +12,7 @@ members = ["derive", "wasm", "expand"]
 
 [dev-dependencies]
 tokio = { version = "1.20", features = ["full"] }
+dotenv = "0.15"
 
 [dependencies]
 derive = { path = "derive" }

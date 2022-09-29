@@ -5,7 +5,9 @@ use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 fn decode<O: DeserializeOwned>(value: &Value, operation: &str, returning: bool) -> Result<O> {
+    println!("value: {:?}", value);
     let mut entry = value.get(operation).ok_or(Error::Empty)?;
+    println!("entry: {}", entry);
 
     if let (true, Some(new)) = (returning, entry.get("returning")) {
         entry = new

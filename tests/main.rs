@@ -162,3 +162,55 @@ fn recursive_except() {
     assert_eq!(query.to_string(), "stores { id manager_id manager { name weight } }");
 }
 
+//////////////////////////////////////
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Hasura)]
+#[hasura(table = "tags")]
+pub struct Tag {
+    #[hasura(pk = "u64")]
+    pub quiz_id: Option<u64>,
+
+    #[hasura(pk = "String")]
+    pub value: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct Image {
+    pub url: String,
+    pub blurhash: Option<String>
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Hasura, Default)]
+#[hasura(table = "quizzes")]
+pub struct Quiz {
+    #[hasura(pk = "u64")]
+    pub id: Option<u64>,
+
+    pub public: bool,
+    pub complete: bool,
+    pub title: String,
+    pub description: String,
+    pub explanation: String,
+
+    #[serde(default)]
+    pub image: Image,
+
+    #[hasura(relation = "Tag")]
+    #[serde(with = "relation")]
+    #[serde(default)]
+    pub tags: Vec<Tag>,
+}
+
+#[cfg(test)]
+#[tokio::test]
+async fn simple_real() {
+    dotenv::dotenv().unwrap();
+
+    let url = std::env::var("GRAPHQL_ENDPOINT").unwrap();
+    let admin = std::env::var("GRAPHQL_ADMIN_SECRET").unwrap();
+
+    let body: Query<Quiz> = Query::new();
+
+    query!(body).admin(admin).send(&url).await.unwrap();
+}
+

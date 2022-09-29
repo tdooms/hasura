@@ -15,11 +15,15 @@ enum Response {
     Errors { errors: Vec<GraphqlError> },
 }
 
-async fn request(url: &str, body: String, token: Option<String>) -> Result<Value> {
+async fn request(url: &str, body: String, t: Option<String>, a: Option<String>) -> Result<Value> {
     let mut headers = reqwest::header::HeaderMap::new();
 
-    if let Some(token) = token {
+    if let Some(token) = t {
         headers.insert("authorization", token.parse().unwrap());
+    }
+
+    if let Some(admin) = a {
+        headers.insert("x-hasura-admin-secret", admin.parse().unwrap());
     }
 
     let text = reqwest::Client::new()
@@ -42,6 +46,7 @@ pub struct Fetcher<O> {
     pub extract: Box<dyn FnOnce(Value) -> Result<O>>,
 
     pub token: Option<String>,
+    pub admin: Option<String>,
 }
 
 impl<O> Fetcher<O> {
@@ -51,16 +56,22 @@ impl<O> Fetcher<O> {
             body: format!("{{\"query\": \"{}\"}}", body),
             extract: Box::new(extract),
             token: None,
+            admin: None
         }
     }
 
-    pub fn token(mut self, token: Option<String>) -> Self {
-        self.token = token;
+    pub fn token(mut self, token: impl Into<Option<String>>) -> Self {
+        self.token = token.into();
+        self
+    }
+
+    pub fn admin(mut self, admin: impl Into<Option<String>>) -> Self {
+        self.admin = admin.into();
         self
     }
 
     pub async fn send(self, url: &str) -> Result<O> {
-        let val = request(url, self.body, self.token).await?;
+        let val = request(url, self.body, self.token, self.admin).await?;
         (self.extract)(val)
     }
 }

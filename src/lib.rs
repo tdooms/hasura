@@ -30,11 +30,7 @@ pub mod relation {
             T: Deserialize<'de>,
             D: Deserializer<'de>,
     {
-        #[derive(serde::Deserialize)]
-        struct Wrapper<T> {
-            data: T,
-        }
-        Wrapper::<T>::deserialize(deserializer).map(|wrapper| wrapper.data)
+        T::deserialize(deserializer)
     }
 }
 
