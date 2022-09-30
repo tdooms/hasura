@@ -50,6 +50,14 @@ fn simple_query() {
 
 #[cfg(test)]
 #[test]
+fn query_by_pk() {
+    let manager = QueryByPk::new(ManagerPk{name: "Boris".into()});
+
+    assert_eq!(manager.to_string(), "managers_by_pk(name: \"Boris\") { name weight }");
+}
+
+#[cfg(test)]
+#[test]
 fn complex_query() {
     let managers: Query<Manager> = Query::new()
         .distinct_on(Manager::name())
