@@ -51,7 +51,7 @@ fn simple_query() {
 #[cfg(test)]
 #[test]
 fn query_by_pk() {
-    let manager = QueryByPk::new(ManagerPk{name: "Boris".into()});
+    let manager: QueryByPk<Manager> = QueryByPk::new(ManagerPk{name: "Boris".into()});
 
     assert_eq!(manager.to_string(), "managers_by_pk(name: \"Boris\") { name weight }");
 }
