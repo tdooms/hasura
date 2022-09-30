@@ -8,6 +8,7 @@ pub trait Maybe<T: Display> {
 
 pub struct Braced<'a, T: Display>(pub &'a T);
 pub struct Serialized<'a, T: serde::Serialize>(pub &'a T);
+pub struct Flattened<'a, T: serde::Serialize>(pub &'a T);
 
 pub struct Separated<'a, T: Display>(pub &'a [T]);
 pub struct Separalized<'a, T: serde::Serialize>(pub &'a [T]);
@@ -21,6 +22,12 @@ impl<'a, T: Display> Display for Braced<'a, T> {
 impl<'a, T: serde::Serialize> Display for Serialized<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", crate::to_string(self.0, true).unwrap())
+    }
+}
+
+impl<'a, T: serde::Serialize> Display for Flattened<'a, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", crate::to_string(self.0, false).unwrap())
     }
 }
 

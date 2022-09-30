@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 use serde::de::DeserializeOwned;
-use crate::{Builder, Fields, Hasura, Queryable, Serialized};
+use crate::{Builder, Fields, Flattened, Hasura, Queryable, Serialized};
 
 pub struct QueryByPk<'a, T: Hasura> {
     pub pk: T::Pk,
@@ -30,7 +30,7 @@ impl<'a, T: Hasura + DeserializeOwned> Queryable<T> for QueryByPk<'a, T> {
 impl<'a, T: Hasura + DeserializeOwned> Display for QueryByPk<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         Builder::new(Self::name(), &self.returning)
-            .pk(&Serialized(&self.pk))
+            .pk(&Flattened(&self.pk))
             .write(f)
     }
 }
