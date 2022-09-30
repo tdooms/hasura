@@ -1,4 +1,4 @@
-use crate::{Builder, Conditions, Fields, Hasura, Mutation, Serialized};
+use crate::{Braced, Builder, Conditions, Fields, Hasura, Mutation, Serialized};
 use serde::de::DeserializeOwned;
 use std::fmt::{Display, Formatter};
 use serde::Serialize;
@@ -44,7 +44,7 @@ impl<'a, T: Hasura + Serialize + DeserializeOwned> Display for Update<'a, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         Builder::new(Self::name(), &self.returning)
             .param("_set", &Serialized(&self.set))
-            .param("where", &self.conditions)
+            .param("where", &Braced(&self.conditions))
             .explicit(true)
             .write(f)
     }
