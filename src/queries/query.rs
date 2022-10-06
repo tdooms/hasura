@@ -1,4 +1,4 @@
-use crate::{Conditions, Field, Fields, Hasura, Queryable, OrderBy, Builder, Separated, Braced};
+use crate::{Braced, Builder, Conditions, Field, Fields, Hasura, OrderBy, Queryable, Separated};
 use serde::de::DeserializeOwned;
 use std::fmt::Formatter;
 
@@ -63,7 +63,7 @@ impl<'a, T: Hasura + DeserializeOwned> std::fmt::Display for Query<'a, T> {
             .maybe("distinct_on", &self.distinct_on)
             .maybe("limit", &self.limit)
             .maybe("offset", &self.offset)
-            .maybe("where", &Braced(&self.conditions))
+            .maybe("where", &self.conditions.as_ref().map(|x| Braced(x)))
             .write(f)
     }
 }

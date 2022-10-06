@@ -1,6 +1,6 @@
-use std::fmt::{Display, Formatter};
+use crate::{Builder, Fields, Flattened, Hasura, Queryable};
 use serde::de::DeserializeOwned;
-use crate::{Builder, Fields, Flattened, Hasura, Queryable, Serialized};
+use std::fmt::{Display, Formatter};
 
 pub struct QueryByPk<'a, T: Hasura> {
     pub pk: T::Pk,
