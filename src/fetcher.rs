@@ -58,14 +58,14 @@ impl<O> Fetcher<O> {
         self
     }
 
-    pub fn admin<T: ToString>(self, admin: impl Into<Option<T>>) -> Self {
+    pub fn admin(self, admin: impl Into<Option<String>>) -> Self {
         match admin.into() {
             Some(admin) => self.header("x-hasura-admin-secret", admin),
             None => self
         }
     }
 
-    pub fn token<T: ToString>(self, token: impl Into<Option<T>>) -> Self {
+    pub fn token(self, token: impl Into<Option<String>>) -> Self {
         match token.into() {
             Some(token) => self.header("authorization", token),
             None => self
