@@ -58,14 +58,18 @@ impl<O> Fetcher<O> {
         self
     }
 
-    pub fn admin(mut self, admin: impl ToString) -> Self {
-        self.headers.insert("x-hasura-admin-secret".to_string(), admin.to_string());
-        self
+    pub fn admin<T: ToString>(self, admin: impl Into<Option<T>>) -> Self {
+        match admin.into() {
+            Some(admin) => self.header("x-hasura-admin-secret", admin),
+            None => self
+        }
     }
 
-    pub fn token(mut self, token: impl ToString) -> Self {
-        self.headers.insert("authorization".to_string(), token.to_string());
-        self
+    pub fn token<T: ToString>(self, token: impl Into<Option<T>>) -> Self {
+        match token.into() {
+            Some(token) => self.header("authorization", token),
+            None => self
+        }
     }
 
     pub async fn send(self, url: &str) -> Result<O> {
