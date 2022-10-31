@@ -1,18 +1,18 @@
-use std::fmt::Formatter;
+use crate::Separalized;
+use crate::{Builder, Fields, Hasura, Mutation, OnConflict};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use crate::{Builder, Fields, Hasura, Mutation, OnConflict};
-use crate::Separalized;
+use std::fmt::Formatter;
 
 pub struct Insert<'a, T: Hasura> {
-    pub objects: Vec<&'a T>,
+    pub objects: &'a [T],
     pub affected_rows: bool,
     pub on_conflict: Option<OnConflict>,
     pub returning: Fields<'a, T>,
 }
 
 impl<'a, T: Hasura> Insert<'a, T> {
-    pub fn new(objects: Vec<&'a T>) -> Self {
+    pub fn new(objects: &'a [T]) -> Self {
         Insert {
             objects,
             affected_rows: false,
@@ -36,7 +36,9 @@ impl<'a, T: Hasura> Insert<'a, T> {
 
 impl<'a, T: Hasura + DeserializeOwned + Serialize> Mutation<T> for Insert<'a, T> {
     type Out = Vec<T>;
-    fn name() -> String { format!("insert_{}", T::table()) }
+    fn name() -> String {
+        format!("insert_{}", T::table())
+    }
 }
 
 impl<'a, T: Hasura + DeserializeOwned + Serialize> std::fmt::Display for Insert<'a, T> {

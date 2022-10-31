@@ -1,7 +1,6 @@
 use hasura::*;
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Debug, Serialize, Deserialize, Clone, Hasura)]
 #[hasura(table = "articles")]
 pub struct Article {
@@ -51,9 +50,14 @@ fn simple_query() {
 #[cfg(test)]
 #[test]
 fn query_by_pk() {
-    let manager: QueryByPk<Manager> = QueryByPk::new(ManagerPk{name: "Boris".into()});
+    let manager: QueryByPk<Manager> = QueryByPk::new(ManagerPk {
+        name: "Boris".into(),
+    });
 
-    assert_eq!(manager.to_string(), "managers_by_pk(name:\"Boris\", ) { name weight }");
+    assert_eq!(
+        manager.to_string(),
+        "managers_by_pk(name:\"Boris\", ) { name weight }"
+    );
 }
 
 #[cfg(test)]
@@ -113,7 +117,8 @@ fn complex_insert() {
         manager: None,
     };
 
-    let insert = Insert::new(vec![&store0, &store1]);
+    let stores = [store0, store1];
+    let insert = Insert::new(&stores);
 
     assert_eq!(insert.to_string(), "insert_stores(objects: [{articles:{data:[{name:\"1\",category:\"1\",price:\"1\"}]}}, {articles:{data:[{name:\"0\",category:\"0\",price:\"0\"}]}}]) { returning { id manager_id articles { name category price } manager { name weight } } }")
 }
@@ -151,7 +156,10 @@ fn update_by_pk() {
         price: 7,
     };
 
-    let _pk = ArticlePk { name: "apple".to_string(), category: "fruits".to_string() };
+    let _pk = ArticlePk {
+        name: "apple".to_string(),
+        category: "fruits".to_string(),
+    };
     let pk = Article::pk("apple", "fruits");
     let updated = UpdateByPk::new(pk, &article);
 
@@ -167,7 +175,10 @@ fn recursive_except() {
     let returning = Store::except(&[Store::articles(Article::all())]);
     let query = Query::new().returning(returning);
 
-    assert_eq!(query.to_string(), "stores { id manager_id manager { name weight } }");
+    assert_eq!(
+        query.to_string(),
+        "stores { id manager_id manager { name weight } }"
+    );
 }
 
 //////////////////////////////////////
@@ -185,7 +196,7 @@ pub struct Tag {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct Image {
     pub url: String,
-    pub blurhash: Option<String>
+    pub blurhash: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Hasura, Default)]
@@ -221,4 +232,3 @@ async fn simple_real() {
 
     query!(body).admin(admin).send(&url).await.unwrap();
 }
-
