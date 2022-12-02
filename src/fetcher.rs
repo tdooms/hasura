@@ -16,8 +16,17 @@ pub struct GraphqlError {
 #[derive(serde::Deserialize, Debug)]
 #[serde(untagged)]
 enum Response {
-    Data { data: Value },
-    Errors { errors: Vec<GraphqlError> },
+    Data {
+        data: Value,
+    },
+    Errors {
+        errors: Vec<GraphqlError>,
+    },
+    NotFound {
+        code: String,
+        error: String,
+        path: String,
+    },
 }
 
 async fn request(url: &str, body: String, headers: HashMap<String, String>) -> Result<String> {
