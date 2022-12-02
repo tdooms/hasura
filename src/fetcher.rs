@@ -24,7 +24,6 @@ enum Response {
     },
     NotFound {
         code: String,
-        error: String,
         path: String,
     },
 }
@@ -66,6 +65,7 @@ impl<O> Wrapper<O> {
         let val = match serde_json::from_str(&self.text)? {
             Response::Data { data } => Ok(data),
             Response::Errors { errors } => Err(Error::Hasura(errors)),
+            Response::NotFound { path, code, .. } => Err(Error::NotFound { path, code }),
         };
         (self.extract)(val?)
     }

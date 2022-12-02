@@ -11,6 +11,9 @@ pub enum Error {
     #[error("Hasura error: {0:?}")]
     Hasura(Vec<GraphqlError>),
 
+    #[error("Endpoint not found: code={code} path={path}")]
+    NotFound{code: String, path: String},
+
     #[error("Internal empty error")]
     Empty,
 }
