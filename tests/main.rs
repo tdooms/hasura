@@ -219,6 +219,8 @@ async fn simple_real() {
 
     let body: Query<Quiz> = Query::new();
 
-    query!(body).admin(admin).send(&url).await.unwrap();
+    let string = query!(body).admin(admin).send(&url).await.unwrap();
+    println!("{string}");
+    let quiz = string.parse().unwrap();
 }
 

@@ -1,9 +1,11 @@
 use std::collections::HashMap;
-use crate::{Error, Result};
-use serde_json::Value;
-use std::fmt::{Debug};
+use std::fmt::{Debug, Display};
 use std::str::FromStr;
+
 use reqwest::header::{HeaderName, HeaderValue};
+use serde_json::Value;
+
+use crate::{Error, Result};
 
 #[derive(serde::Deserialize, Debug)]
 pub struct GraphqlError {
@@ -18,10 +20,13 @@ enum Response {
     Errors { errors: Vec<GraphqlError> },
 }
 
-async fn request(url: &str, body: String, headers: HashMap<String, String>) -> Result<Value> {
+async fn request(url: &str, body: String, headers: HashMap<String, String>) -> Result<String> {
     let mut temp = reqwest::header::HeaderMap::new();
     for (key, value) in headers {
-        temp.insert(HeaderName::from_str(&key).unwrap(), HeaderValue::from_str(&value).unwrap());
+        temp.insert(
+            HeaderName::from_str(&key).unwrap(),
+            HeaderValue::from_str(&value).unwrap(),
+        );
     }
 
     let text = reqwest::Client::new()
@@ -33,9 +38,27 @@ async fn request(url: &str, body: String, headers: HashMap<String, String>) -> R
         .text()
         .await?;
 
-    match serde_json::from_str(&text)? {
-        Response::Data { data } => Ok(data),
-        Response::Errors { errors } => Err(Error::Hasura(errors)),
+    Ok(text)
+}
+
+pub struct Wrapper<O> {
+    pub text: String,
+    pub extract: Box<dyn FnOnce(Value) -> Result<O>>,
+}
+
+impl<O> Display for Wrapper<O> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.text)
+    }
+}
+
+impl<O> Wrapper<O> {
+    pub fn parse(self) -> Result<O> {
+        let val = match serde_json::from_str(&self.text)? {
+            Response::Data { data } => Ok(data),
+            Response::Errors { errors } => Err(Error::Hasura(errors)),
+        };
+        (self.extract)(val?)
     }
 }
 
@@ -50,7 +73,11 @@ impl<O> Fetcher<O> {
         let inner = body.to_string().replace('"', "\\\"");
         let body = format!("{{\"query\":\"{inner}\"}}");
 
-        Self { body, extract: Box::new(extract), headers: HashMap::new(), }
+        Self {
+            body,
+            extract: Box::new(extract),
+            headers: HashMap::new(),
+        }
     }
 
     pub fn header(mut self, key: impl ToString, value: impl ToString) -> Self {
@@ -61,19 +88,21 @@ impl<O> Fetcher<O> {
     pub fn admin(self, admin: impl Into<Option<String>>) -> Self {
         match admin.into() {
             Some(admin) => self.header("x-hasura-admin-secret", admin),
-            None => self
+            None => self,
         }
     }
 
     pub fn token(self, token: impl Into<Option<String>>) -> Self {
         match token.into() {
             Some(token) => self.header("authorization", token),
-            None => self
+            None => self,
         }
     }
 
-    pub async fn send(self, url: &str) -> Result<O> {
-        let val = request(url, self.body, self.headers).await?;
-        (self.extract)(val)
+    pub async fn send(self, url: &str) -> Result<Wrapper<O>> {
+        Ok(Wrapper {
+            text: request(url, self.body, self.headers).await?,
+            extract: self.extract,
+        })
     }
 }
